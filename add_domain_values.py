@@ -4,8 +4,8 @@ from datetime import datetime
 
 arcpy.SetLogHistory(False)
 
-s = datetime.now()
-print(s.strftime('%Y/%m/%d %H:%M:%S'))
+start_time = datetime.now()
+print(start_time.strftime('%Y/%m/%d %H:%M:%S'))
 
 
 def with_msgs(command):
@@ -145,7 +145,7 @@ if __name__ == "__main__":
             # with_msgs(arcpy.AddCodedValueToDomain_management(db, EXISTING_DOMAIN_NAME, "INT_QUIET", "Interim Bike Improvements on Quiet Streets"))
             # with_msgs(arcpy.AddCodedValueToDomain_management(db, EXISTING_DOMAIN_NAME, "HELPCONN", "Helpful Connections"))
 
-    f = datetime.now()
-    print(f.strftime('%Y/%m/%d %H:%M:%S'))
+    finish_time = datetime.now()
+    print(finish_time.strftime('%Y/%m/%d %H:%M:%S'))
 
     # TODO: Stop, Start services that use domain to allow for web users to see new domain values
