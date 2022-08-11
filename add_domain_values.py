@@ -97,6 +97,8 @@ if __name__ == "__main__":
     ADD_CODE_VALUES = {
         "FR11961": "Francois Malenfant",
     }
+    
+    print(f"\nAltering Domain '{DOMAIN_NAME}'...")
 
     # connections = check_connections([
     #     [SCRATCH_GDB],
@@ -132,6 +134,8 @@ if __name__ == "__main__":
             for code_value in ADD_CODE_VALUES:
                 new_code = code_value
                 new_value = ADD_CODE_VALUES[code_value]
+                
+                print(f"Adding domain code, value: {new_code}, {new_value}...")
 
                 with_msgs(arcpy.AddCodedValueToDomain_management(
                     in_workspace=db,
