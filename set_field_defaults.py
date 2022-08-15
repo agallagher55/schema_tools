@@ -40,6 +40,9 @@ SUBTYPE_CODES = ['1: Acquisition', '2: Disposal']
 
 
 if __name__ == "__main__":
+    
+    FEATURE = "SDEADM.LND_ACQUISITION_DISPOSAL"
+    
     # for connection in web_gdbs:
     for connection in [
         # dev_rw, dev_ro, dev_web_ro
@@ -55,7 +58,7 @@ if __name__ == "__main__":
                 print(f"\tSetting {field_name} default to '{field_default}'...")
 
                 result = arcpy.AssignDefaultToField_management(
-                    in_table="SDEADM.LND_ACQUISITION_DISPOSAL",
+                    in_table=FEATURE,
                     field_name=field_name,
                     default_value=field_default,
                     subtype_code=SUBTYPE_CODES,
