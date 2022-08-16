@@ -18,7 +18,10 @@ def create_fgdb(out_folder_path, out_name="scratch.gdb"):
         print(f"\tFile Geodatabase already exists!")
         return workspace_path
 
-    return arcpy.CreateFileGDB_management(out_folder_path, out_name).getOutput(0)
+    fgdb = arcpy.CreateFileGDB_management(out_folder_path, out_name).getOutput(0)
+    print("\tFile Geodatabase created!")
+
+    return fgdb
 
 
 def copy_feature(feature, workspace):
