@@ -1,4 +1,5 @@
 import arcpy
+import utils
 
 from datetime import datetime
 
@@ -15,9 +16,6 @@ def with_msgs(command):
     print('-' * 100)
 
 
-# TODO: Create scratch workspace in working folder
-
-SCRATCH_GDB = r"T:\work\giss\monthly\202207jul\gallaga\Add Domain Codes Values\scripts\Scratch.gdb"
 # TODO: Use COPY GP tool to bring SDE feature with domain to scratch geodatabase - this will transfer domains for testing
 
 # DEV
@@ -99,6 +97,12 @@ if __name__ == "__main__":
         "FR11961": "Francois Malenfant",
     }
     
+    # Create scratch workspace in working folder
+    WORKING_FOLDER = r"T:\work\giss\monthly\202208aug\gallaga\Grass Schema\sys_admin-main (2)\sys_admin-main"
+
+    # TODO: Use COPY GP tool to bring SDE feature with domain to scratch geodatabase - this will transfer domains for testing
+    SCRATCH_GDB = utils.create_fgdb(WORKING_FOLDER)
+    
     print(f"\nAltering Domain '{DOMAIN_NAME}'...")
 
     # connections = check_connections([
@@ -147,10 +151,8 @@ if __name__ == "__main__":
 
             # with_msgs(arcpy.AddCodedValueToDomain_management(db, EXISTING_DOMAIN_NAME, "INT_PROTBL", "Interim Protected Bike Lane"))
             # with_msgs(arcpy.AddCodedValueToDomain_management(db, EXISTING_DOMAIN_NAME, "INT_MUPATH", "Interim Multi-Use Pathway"))
-            # with_msgs(arcpy.AddCodedValueToDomain_management(db, EXISTING_DOMAIN_NAME, "INT_QUIET", "Interim Bike Improvements on Quiet Streets"))
-            # with_msgs(arcpy.AddCodedValueToDomain_management(db, EXISTING_DOMAIN_NAME, "HELPCONN", "Helpful Connections"))
 
     finish_time = datetime.now()
-    print(finish_time.strftime('%Y/%m/%d %H:%M:%S'))
+    print(f"\nFinished: {finish_time.strftime('%Y/%m/%d %H:%M:%S')}")
 
     # TODO: Stop, Start services that use domain to allow for web users to see new domain values
