@@ -9,6 +9,7 @@ print(start_time.strftime('%Y/%m/%d %H:%M:%S'))
 
 
 def with_msgs(command):
+    print('-' * 100)
     command
     print(arcpy.GetMessages(0))
     print('-' * 100)
