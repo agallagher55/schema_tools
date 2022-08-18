@@ -11,7 +11,7 @@ def create_fgdb(out_folder_path, out_name="scratch.gdb"):
     :return: path to file geodatabase
     """
 
-    print(f"\nCreating File Geodatabase '{out_name}'...")
+    print(f"\nCreating File Geodatabase '{out_name}' in {out_folder_path}...")
     workspace_path = os.path.join(out_folder_path, out_name)
 
     if arcpy.Exists(workspace_path):
