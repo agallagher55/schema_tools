@@ -40,3 +40,14 @@ def domain_in_db(db, domain):
         return False, domains
 
     return True, domains
+
+
+def assign_to_field(feature, domain_name, field_name):
+    print(f"\nAssigning domain '{domain_name}' to field '{field_name}...'")
+
+    arcpy.AssignDomainToField_management(
+        in_table=feature,
+        field_name=field_name,
+        domain_name=domain_name,
+        subtype_code=None  # Optional
+    )
