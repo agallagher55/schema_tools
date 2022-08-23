@@ -5,7 +5,7 @@ import utils
 import domains
 
 from datetime import datetime
-from os import getcwd
+from os import getcwd, path
 
 arcpy.SetLogHistory(False)
 
@@ -18,6 +18,7 @@ def with_msgs(command):
     command
     print(arcpy.GetMessages(0))
     print('-' * 100)
+
 
 # DEV
 dev_rw = "C:\\Users\\gallaga\\AppData\\Roaming\\Esri\\ArcGISPro\\Favorites\\DEV_RW_SDEADM.sde"
@@ -48,32 +49,11 @@ web_fs_gdbs = [prod_web_ro_gdb, dev_web_ro_gdb, qa_web_ro_gdb]
 db_connections = [dev_gdbs, qa_gdbs, prod_gdbs, web_fs_gdbs]
 
 
-def check_connections(db_connections: [[]]):
-    # Make sure all db connection files are valid
-    print(f"\nChecking connections...")
-
-    fails = []
-    success = []
-
-    for connections in db_connections:
-        for connection in connections:
-
-            if not arcpy.Exists(connection):
-                fails.append(connection)
-
-            else:
-                success.append(connection)
-                
-    if fails:
-        raise IndexError(f"Invalid connection(s) found: {', '.join(fails)}")
-
-    return {"valid_connections": success}
-
-
 if __name__ == "__main__":
-    DOMAIN_NAME = "TRN_RDM_RoadClosureEditors"
+    COPY_FEATURE = path.join(prod_rw, "SDEADM.LND_park_recreation_feature")
+    DOMAIN_NAME = "LND_rec_ballfield_use"
     ADD_CODE_VALUES = {
-        "Danielle Crowe": "Danielle Crowe",
+        "BALLFIELD NON REG": "Ballfield (Non-regulation)",
     }
 
     # Create scratch workspace in working folder
@@ -83,43 +63,38 @@ if __name__ == "__main__":
     CURRENT_DIR = getcwd()
     SCRATCH_GDB = utils.create_fgdb(CURRENT_DIR)
 
-    connections = connections.check_connections([
-        [SCRATCH_GDB],
-        dev_gdbs,
-        qa_gdbs,
-        prod_gdbs,
-        web_fs_gdbs
-    ]
-    )
-
     print(f"\nAltering Domain '{DOMAIN_NAME}'...")
 
-    # for dbs in [
-    #     # [SCRATCH_GDB],
-    #     # dev_gdbs,
-    #     # qa_gdbs,
-    #     # prod_gdbs,
-    #     # web_gdbs
-    # ]:
-    #
-    #     print(f"\nProcessing dbs: {', '.join(dbs)}...")
-    #
-    #     for db in dbs:
-    #         print(f"\n\tDatabase: {db}")
-    #
-    #         # Check that domain is found in database connection
-    #         domain_found, db_domains = domains.domain_in_db(db, DOMAIN_NAME)
-    #
-    #         if not domain_found:
-    #             raise ValueError(f"Did not find domain '{DOMAIN_NAME}' in db. Found domains: {', '.join(db_domains)}")
-    #
-    #         for code_value in ADD_CODE_VALUES:
-    #             new_code = code_value
-    #             new_value = ADD_CODE_VALUES[code_value]
-    #
-    #             with_msgs(domains.add_code_value(db, DOMAIN_NAME, new_code, new_value))
-    #
-    # finish_time = datetime.now()
-    # print(f"\nFinished: {finish_time.strftime('%Y/%m/%d %H:%M:%S')}")
+    for dbs in [
+        # [SCRATCH_GDB],
+        dev_gdbs,
+        # qa_gdbs,
+        # prod_gdbs,
+        # web_fs_gdbs
+    ]:
+
+        print(f"\nProcessing dbs: {', '.join(dbs)}...")
+
+        for db in dbs:
+            print(f"\n\tDatabase: {db}")
+
+            # If workspace is a local geodatabase copy feature to workspace
+            if db.endswith(".gdb"):
+                utils.copy_feature(COPY_FEATURE, db)  # Copy SDE feature to local workspace
+
+            # Check that domain is found in database connection
+            domain_found, db_domains = domains.domain_in_db(db, DOMAIN_NAME)
+
+            if not domain_found:
+                raise ValueError(f"Did not find domain '{DOMAIN_NAME}' in db. Found domains: {', '.join(db_domains)}")
+
+            for code_value in ADD_CODE_VALUES:
+                new_code = code_value
+                new_value = ADD_CODE_VALUES[code_value]
+
+                with_msgs(domains.add_code_value(db, DOMAIN_NAME, new_code, new_value))
+
+    finish_time = datetime.now()
+    print(f"\nFinished: {finish_time.strftime('%Y/%m/%d %H:%M:%S')}")
 
     # TODO: Stop, Start services that use domain to allow for web users to see new domain values
