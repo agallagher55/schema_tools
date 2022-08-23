@@ -39,18 +39,11 @@ prod_gdbs = [prod_rw, prod_ro, prod_ro_web]
 
 # WEB
 # web gdbs are in intermediate workspace and also used to publish some web services from
-
 # TODO: add WEBGIS dbs and check for adding new domain. If new domain, add to WEBGIS connections
-
 dev_web_ro_gdb = r"\\msfs06\GISApp\AGS_Dev\fgdbs\web_RO.gdb"
 qa_web_ro_gdb = r"\\msfs06\GISApp\AGS_QA\fgdbs\web_RO.gdb"
 prod_web_ro_gdb = r"\\msfs06\GISApp\AGS_Prod\fgdbs\web_RO.gdb"
-
-web_fs_gdbs = [
-    prod_web_ro_gdb,
-    dev_web_ro_gdb,
-    qa_web_ro_gdb
-]
+web_fs_gdbs = [prod_web_ro_gdb, dev_web_ro_gdb, qa_web_ro_gdb]
 
 db_connections = [dev_gdbs, qa_gdbs, prod_gdbs, web_fs_gdbs]
 
