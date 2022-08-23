@@ -24,25 +24,34 @@ def create_fgdb(out_folder_path, out_name="scratch.gdb"):
     return fgdb
 
 
-def copy_feature(feature, workspace):
+def copy_feature(copy_feature, workspace):
     """
     - Copy Features, carrying over domains
-    :param feature:
+    :param copy_feature:
     :param workspace:
     :return:
     """
 
-    print(f"\nCopying '{feature}' to {workspace}...")
+    print(f"\nCopying '{copy_feature}' to {workspace}...")
 
-    feature_name = arcpy.Describe(feature).name.lstrip("SDEADM.")  # Remove SDEADM.
+    feature_name = arcpy.Describe(copy_feature).name.lstrip("SDEADM.")  # Remove SDEADM.
     output_feature = os.path.join(workspace, feature_name)
 
-    arcpy.Copy_management(
-        in_data=feature,
-        out_data=output_feature
-    )
+    with arcpy.EnvManager(workspace=workspace):
+        workspace_features = arcpy.ListFeatureClasses()
 
-    return output_feature
+        # Check if feature already exists in workspace
+        if feature_name not in workspace_features:
+
+            arcpy.Copy_management(
+                in_data=copy_feature,
+                out_data=output_feature
+            )
+
+            return output_feature
+
+        else:
+            print(f"\t*{feature_name} already exists in {workspace}.")
 
     # arcpy.Copy_management(
     #     r"C:\Users\gallaga\AppData\Roaming\ESRI\ArcGISPro\Favorites\Prod_GIS_Halifax.sde\SDEADM.LND_hrm_parcel_parks\SDEADM.LND_hrm_parcel",
