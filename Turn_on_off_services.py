@@ -10,21 +10,25 @@ import shutil
 import arcpy
 import httplib
 
-##server_name = "gisapp-int-dev.halifax.ca" #DEV
+# server_name = "gisapp-int-dev.halifax.ca" #DEV
 
-##server_name = "gisappa-int-qa.halifax.ca" #QA Use this
-server_name = "gisappa-int.halifax.ca"  # PROD use this.  This needs to be run on DC1-GIS-APP-P22 or DCQ-GIS-APP-P23
+server_name = "gisappa-int-qa.halifax.ca" #QA Use this
+# server_name = "gisappa-int.halifax.ca"  # PROD use this.  This needs to be run on DC1-GIS-APP-P22 or DCQ-GIS-APP-P23
 
 baseURL = "https://" + server_name + ":6443/arcgis"
 servicesURL = baseURL + "/admin/services/"
 
 username = "siteadmin"
-##password = "panas0n1c" #DEV
-##password = "t0m@t0e" #QA
-password = "e33pl@nt"  # PROD
+# password = "panas0n1c" #DEV
+password = "t0m@t0e"  # QA
+# password = "e33pl@nt"  # PROD
 
 services = [
-    servicesURL + "HRM/AGS_Land_Sectrav_WGS84.MapServer",
+    # servicesURL + "HRM/AGS_Land_Sectrav_WGS84.MapServer",
+    # servicesURL + "DDE/dde_map.MapServer",
+    servicesURL + "HRMRegistry/HRMBaseData.MapServer",
+    servicesURL + "CityWorks/Cityworks_Assets.MapServer",
+    servicesURL + "CityWorks/Cityworks_Map.MapServer",
 ]
 
 print servicesURL
@@ -32,11 +36,14 @@ print servicesURL
 
 def openURL(url, params=None, protocol=None):
     try:
-        print("openURL")
+        print("Opening URL...")
+
         if params:
             params.update(dict(f="json"))
+
         else:
             params = dict(f="json")
+
         if protocol:
             encoded_params = str.encode(urllib.urlencode(params))
             encoded_params = encoded_params.decode("utf-8")
@@ -44,13 +51,16 @@ def openURL(url, params=None, protocol=None):
             request = urllib2.Request(url)
             request.add_header('referer', baseURL)
             response = urllib2.urlopen(request)
+
         else:
             encoded_params = str.encode(urllib.urlencode(params))
             request = urllib2.Request(url)
             request.add_header('referer', baseURL)
             response = urllib2.urlopen(request, encoded_params)
+
         decodedResponse = response.read().decode('utf-8')
         jsonResponse = json.loads(decodedResponse)
+
         return jsonResponse
 
     except urllib2.HTTPError as e:
@@ -65,18 +75,22 @@ def openURL(url, params=None, protocol=None):
 
 
 def createToken(baseURL, username, password):
-    print("create token")
+    print("Creating token...")
     tokenURL = "{}/tokens/generateToken".format(baseURL)
     params = {"username": username,
               "password": password,
               "client": 'referer',
               "referer": baseURL}
+
     resp = openURL(tokenURL, params)
+
     print(tokenURL)
     print(params)
     print(resp)
+
     if "token" in resp:
         return resp['token']
+
     else:
         raise Exception("Can't get token: {}".format(resp))
 
@@ -84,11 +98,14 @@ def createToken(baseURL, username, password):
 
 
 def startStopService(service, start_or_stop):
-    print("start/stop")
+    print("{}ING Service...".format(start_or_stop.upper()))
+
     serviceName = urllib2.urlparse.urlparse(service).path.split("/")[-1]
     resp = openURL("{}/{}".format(service, start_or_stop), params)
+
     if "status" in resp and resp['status'] == 'success':
-        print("Successfully {} {}".format(start_or_stop, serviceName))
+        print("Successfully {}ED {}".format(start_or_stop, serviceName))
+
     else:
         print("Unable to {} {}.\n {}".format(start_or_stop, serviceName, resp))
 
@@ -114,9 +131,10 @@ if __name__ == "__main__":
     ##        exit()
 
     try:
-        for s in services:
-            print s
-            startStopService(s, "START")
+        for service in services:
+            print service
+            # startStopService(service, "START")
+            startStopService(service, "STOP")
 
     except:
         tb = sys.exc_info()[2]
