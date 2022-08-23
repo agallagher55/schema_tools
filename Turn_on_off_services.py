@@ -10,22 +10,23 @@ import shutil
 import arcpy
 import httplib
 
+# TODO: Update so you can use keyword (dev, qa, prod) to start/stop service
+
 # server_name = "gisapp-int-dev.halifax.ca" #DEV
 
-server_name = "gisappa-int-qa.halifax.ca" #QA Use this
-# server_name = "gisappa-int.halifax.ca"  # PROD use this.  This needs to be run on DC1-GIS-APP-P22 or DCQ-GIS-APP-P23
+# server_name = "gisappa-int-qa.halifax.ca" #QA Use this
+server_name = "gisappa-int.halifax.ca"  # PROD use this.  This needs to be run on DC1-GIS-APP-P22 or DCQ-GIS-APP-P23
 
 baseURL = "https://" + server_name + ":6443/arcgis"
 servicesURL = baseURL + "/admin/services/"
 
 username = "siteadmin"
 # password = "panas0n1c" #DEV
-password = "t0m@t0e"  # QA
-# password = "e33pl@nt"  # PROD
+# password = "t0m@t0e"  # QA
+password = "e33pl@nt"  # PROD
 
 services = [
-    # servicesURL + "HRM/AGS_Land_Sectrav_WGS84.MapServer",
-    # servicesURL + "DDE/dde_map.MapServer",
+    servicesURL + "DDE/dde_map.MapServer",
     servicesURL + "HRMRegistry/HRMBaseData.MapServer",
     servicesURL + "CityWorks/Cityworks_Assets.MapServer",
     servicesURL + "CityWorks/Cityworks_Map.MapServer",
@@ -75,7 +76,7 @@ def openURL(url, params=None, protocol=None):
 
 
 def createToken(baseURL, username, password):
-    print("Creating token...")
+    print("\nCreating token...")
     tokenURL = "{}/tokens/generateToken".format(baseURL)
     params = {"username": username,
               "password": password,
@@ -133,8 +134,8 @@ if __name__ == "__main__":
     try:
         for service in services:
             print service
-            # startStopService(service, "START")
-            startStopService(service, "STOP")
+            startStopService(service, "START")
+            # startStopService(service, "STOP")
 
     except:
         tb = sys.exc_info()[2]
