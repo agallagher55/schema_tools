@@ -1,6 +1,6 @@
 import arcpy
 
-
+import connections
 import utils
 import domains
 
@@ -83,13 +83,13 @@ if __name__ == "__main__":
     CURRENT_DIR = getcwd()
     SCRATCH_GDB = utils.create_fgdb(CURRENT_DIR)
 
-    connections = check_connections([
+    connections = connections.check_connections([
         [SCRATCH_GDB],
         dev_gdbs,
         qa_gdbs,
         prod_gdbs,
-        web_fs_gdbs,
-        ]
+        web_fs_gdbs
+    ]
     )
 
     print(f"\nAltering Domain '{DOMAIN_NAME}'...")
