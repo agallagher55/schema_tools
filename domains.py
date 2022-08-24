@@ -15,15 +15,22 @@ def add_code_value(workspace, domain_name, code, value):
 
 
 def remove_code_value(workspace, domain_name, code):
-    # TODO: Check if code exists
 
     print(f"\nRemoving domain code: '{code}' from {domain_name}...")
+    coded_values = [d.codedValues for d in arcpy.da.ListDomains(workspace) if d.name == domain_name]
+
+    if coded_values:
+        codes = list(coded_values[0].keys())
+        if code not in codes:
+            print("\tCode not found in domain!")
+            return False
 
     arcpy.DeleteCodedValueFromDomain_management(
         workspace,
         domain_name,
         code
     )
+    return True
 
 
 def domain_in_db(db, domain):
