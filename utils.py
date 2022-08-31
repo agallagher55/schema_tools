@@ -2,6 +2,13 @@ import arcpy
 import os
 
 
+def with_msgs(command):
+    print('-' * 100)
+    command
+    print(arcpy.GetMessages(0))
+    print('-' * 100)
+
+
 def create_fgdb(out_folder_path, out_name="scratch.gdb"):
     """
     Create scratch workspace (gdb)
@@ -34,7 +41,7 @@ def copy_feature(copy_feature, workspace):
 
     print(f"\nCopying '{copy_feature}' to {workspace}...")
 
-    feature_name = arcpy.Describe(copy_feature).name.lstrip("SDEADM.")  # Remove SDEADM.
+    feature_name = arcpy.Describe(copy_feature).name.replace("SDEADM.", "")  # Remove SDEADM.
     output_feature = os.path.join(workspace, feature_name)
 
     with arcpy.EnvManager(workspace=workspace):
