@@ -1,5 +1,6 @@
 import arcpy
 import os
+import logging
 
 
 def with_msgs(command):
@@ -60,14 +61,14 @@ def copy_feature(copy_feature, workspace):
         else:
             print(f"\t*{feature_name} already exists in {workspace}.")
 
-            
+
 def setupLog(fileName):
     formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s: %(message)s', datefmt='%m-%d-%Y %H:%M:%S')
 
     handler = logging.FileHandler(fileName)
     handler.setFormatter(formatter)
     handler.setLevel(logging.INFO)
-    
+
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
     logger.addHandler(handler)
