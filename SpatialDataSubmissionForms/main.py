@@ -42,65 +42,65 @@ if unfound_sf_domains:
     raise ValueError(f"A domain is referenced that is NOT found in SDE or as a new domain in the SDSF.\n\t{', '.join(unfound_sf_domains)}")
 
 # Transfer domains from SDE to workspace
-for domain in sde_transfer_domains:
-
-    table = os.path.join(gdb, f"{domain}_domain")
-    print(f"\nDomain ('{domain}') to table: '{table}'...")
-
-    domain_tbl = arcpy.DomainToTable_management(
-        in_workspace=SDE_PROD_RW,
-        domain_name=domain,
-        out_table=table,
-        code_field="CODE",
-        description_field="VALUE"
-    ).getOutput(0)
-
-    # Add domains from table to workspace
-    print("\tCreating domain from table...")
-    try:
-        arcpy.TableToDomain_management(
-            in_table=domain_tbl,
-            code_field="CODE",
-            description_field="VALUE",
-            in_workspace=gdb,
-            domain_name=domain,
-            domain_description=domain
-        )
-    except arcpy.ExecuteError as e:
-        print(e)
-        print(arcpy.GetMessages(2))
+# for domain in sde_transfer_domains:
+#
+#     table = os.path.join(gdb, f"{domain}_domain")
+#     print(f"\nDomain ('{domain}') to table: '{table}'...")
+#
+#     domain_tbl = arcpy.DomainToTable_management(
+#         in_workspace=SDE_PROD_RW,
+#         domain_name=domain,
+#         out_table=table,
+#         code_field="CODE",
+#         description_field="VALUE"
+#     ).getOutput(0)
+#
+#     # Add domains from table to workspace
+#     print("\tCreating domain from table...")
+#     try:
+#         arcpy.TableToDomain_management(
+#             in_table=domain_tbl,
+#             code_field="CODE",
+#             description_field="VALUE",
+#             in_workspace=gdb,
+#             domain_name=domain,
+#             domain_description=domain
+#         )
+#     except arcpy.ExecuteError as e:
+#         print(e)
+#         print(arcpy.GetMessages(2))
 
 # Create new Domains
 domain_dfs = submission_form.new_domains()
 print("\nSetting up new domains...")
-for count, domain in enumerate(domain_dfs, start=1):
-    print(f"{count}/{len(domain_dfs)}) {domain}")
-    domain_info = domain_dfs[domain]
-
-    # TODO: Seem to have to manually create domains
-    # arcpy.CreateDomain_management(
-    #     in_workspace=gdb,
-    #     domain_name=domain,
-    #     domain_description=domain,
-    #     field_type="TEXT",
-    #     domain_type="CODED"
-    # )
-
-    for index, row in domain_info.iterrows():
-        code = row[0]
-        value = row[1]
-
-        try:
-            print(f"\tAdding ({code}: {value}) to '{domain}' domain")
-            arcpy.AddCodedValueToDomain_management(
-                in_workspace=gdb,
-                domain_name=domain,
-                code=code,
-                code_description=value
-            )
-        except arcpy.ExecuteError as e:
-            print(e)
-            print(arcpy.GetMessages(2))
+# for count, domain in enumerate(domain_dfs, start=1):
+#     print(f"{count}/{len(domain_dfs)}) {domain}")
+#     domain_info = domain_dfs[domain]
+#
+#     # TODO: Seem to have to manually create domains
+#     # arcpy.CreateDomain_management(
+#     #     in_workspace=gdb,
+#     #     domain_name=domain,
+#     #     domain_description=domain,
+#     #     field_type="TEXT",
+#     #     domain_type="CODED"
+#     # )
+#
+#     for index, row in domain_info.iterrows():
+#         code = row[0]
+#         value = row[1]
+#
+#         try:
+#             print(f"\tAdding ({code}: {value}) to '{domain}' domain")
+#             arcpy.AddCodedValueToDomain_management(
+#                 in_workspace=gdb,
+#                 domain_name=domain,
+#                 code=code,
+#                 code_description=value
+#             )
+#         except arcpy.ExecuteError as e:
+#             print(e)
+#             print(arcpy.GetMessages(2))
 
 
 feature_schema_info = submission_form.df
@@ -117,7 +117,7 @@ for index, row in feature_schema_info.iterrows():
     field_precision = row[9] if not pd.isna(row[9]) else None
     field_scale = row[10] if not pd.isna(row[10]) else None
 
-    print(f"{index}/{len(feature_schema_info.iterrows())}) {field_name}")
+    print(f"{index}) {field_name}")
 
     # Apply field mapping
     print(f"\tAdding field '{field_name}'...")
