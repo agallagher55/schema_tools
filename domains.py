@@ -51,3 +51,36 @@ def assign_to_field(feature, domain_name, field_name, subtypes: list):
         domain_name=domain_name,
         subtype_code=subtypes  # Optional
     )
+    
+    
+def transfer_domains(domains, output_workspace, from_workspace):
+    for count, domain in enumerate(domains, start=1):
+        print(f"\n{count}/{len(domains)}) {domain}")
+
+        from_workspace_domains = {x.name: x.codedValues for x in arcpy.da.ListDomains(from_workspace)}
+        output_workspace_domains = [x.name for x in arcpy.da.ListDomains(output_workspace)]
+
+        domain_info = from_workspace_domains[domain]
+
+        if domain not in output_workspace_domains:
+            arcpy.CreateDomain_management(
+                in_workspace=output_workspace,
+                domain_name=domain,
+                domain_description=domain,
+                field_type="TEXT",
+                domain_type="CODED"
+            )
+
+        for code, value in domain_info.items():
+            try:
+                print(f"\tAdding ({code}: {value}) to '{domain}' domain")
+                arcpy.AddCodedValueToDomain_management(
+                    in_workspace=output_workspace,
+                    domain_name=domain,
+                    code=code,
+                    code_description=value
+                )
+
+            except arcpy.ExecuteError as e:
+                print(e)
+                print(arcpy.GetMessages(2))
