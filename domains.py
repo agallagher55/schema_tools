@@ -4,7 +4,7 @@ import arcpy
 def add_code_value(workspace, domain_name, code, value):
     # TODO: Check if code already exists
 
-    print(f"\nAdding domain code, value: '{code}' & '{value}'...")
+    print(f"\nAdding domain code, value: '{code}' & '{value}' to domain '{domain_name}'...")
 
     arcpy.AddCodedValueToDomain_management(
         in_workspace=workspace,
@@ -51,8 +51,8 @@ def assign_to_field(feature, domain_name, field_name, subtypes: list):
         domain_name=domain_name,
         subtype_code=subtypes  # Optional
     )
-    
-    
+
+
 def transfer_domains(domains, output_workspace, from_workspace):
     for count, domain in enumerate(domains, start=1):
         print(f"\n{count}/{len(domains)}) {domain}")
