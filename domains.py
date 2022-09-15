@@ -54,6 +54,8 @@ def assign_to_field(feature, domain_name, field_name, subtypes: list):
 
 
 def transfer_domains(domains, output_workspace, from_workspace):
+    print(f"\nTransfering domains from {from_workspace} to {output_workspace}...")
+    
     for count, domain in enumerate(domains, start=1):
         print(f"\n{count}/{len(domains)}) {domain}")
 
