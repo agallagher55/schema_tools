@@ -3,6 +3,18 @@ import time
 
 database_conn = r'Database Connections\Enterprise.sde'
 
+# DEV
+dev_rw = "C:\\Users\\gallaga\\AppData\\Roaming\\Esri\\ArcGISPro\\Favorites\\DEV_RW_SDEADM.sde"
+dev_ro = "C:\\Users\\gallaga\\AppData\\Roaming\\Esri\\ArcGISPro\\Favorites\\DEV_RO_SDEADM.sde"
+dev_web_ro = "C:\\Users\\gallaga\\AppData\\Roaming\\Esri\\ArcGISPro\\Favorites\\webgis_DEV_RO.sde"  # Only need to include when adding a new domain to a field
+dev_web_ro_gdb = r"\\msfs06\GISApp\AGS_Dev\fgdbs\web_RO.gdb"
+dev_connections = [
+    dev_ro,
+    dev_web_ro,
+    dev_rw,
+    dev_web_ro_gdb
+]
+
 
 def prevent_connections(sde):
 
