@@ -10,32 +10,26 @@ import shutil
 import arcpy
 import httplib
 
-# TODO: Update so you can use keyword (dev, qa, prod) to start/stop service
 
-# server_name = "gisapp-int-dev.halifax.ca" #DEV
+USERNAME = "siteadmin"
 
-# server_name = "gisappa-int-qa.halifax.ca" #QA Use this
-server_name = "gisappa-int.halifax.ca"  # PROD use this.  This needs to be run on DC1-GIS-APP-P22 or DCQ-GIS-APP-P23
-
-baseURL = "https://" + server_name + ":6443/arcgis"
-servicesURL = baseURL + "/admin/services/"
-
-username = "siteadmin"
-# password = "panas0n1c" #DEV
-# password = "t0m@t0e"  # QA
-password = "e33pl@nt"  # PROD
-
-services = [
-    servicesURL + "DDE/dde_map.MapServer",
-    servicesURL + "HRMRegistry/HRMBaseData.MapServer",
-    servicesURL + "CityWorks/Cityworks_Assets.MapServer",
-    servicesURL + "CityWorks/Cityworks_Map.MapServer",
-]
-
-print servicesURL
+SERVICE_CONFIG = {
+    "DEV": {
+        "password": "panas0n1c",
+        "base_url": "https://gisapp-int-dev.halifax.ca:6443/arcgis",
+    },
+    "QA": {
+        "password": "t0m@t0e",
+        "base_url": "https://gisappa-int-qa.halifax.ca:6443/arcgis",
+    },
+    "PROD": {
+        "password": "e33pl@nt",
+        "base_url": "https://gisappa-int.halifax.ca:6443/arcgis",  # PROD use this.  This needs to be run on DC1-GIS-APP-P22 or DCQ-GIS-APP-P23
+    },
+}
 
 
-def openURL(url, params=None, protocol=None):
+def openURL(url, params=None, protocol=None, base_url=None):
     try:
         print("Opening URL...")
 
@@ -48,15 +42,18 @@ def openURL(url, params=None, protocol=None):
         if protocol:
             encoded_params = str.encode(urllib.urlencode(params))
             encoded_params = encoded_params.decode("utf-8")
+
             url = "{0}?{1}".format(url, encoded_params)
+
             request = urllib2.Request(url)
-            request.add_header('referer', baseURL)
+            request.add_header('referer', base_url)
+
             response = urllib2.urlopen(request)
 
         else:
             encoded_params = str.encode(urllib.urlencode(params))
             request = urllib2.Request(url)
-            request.add_header('referer', baseURL)
+            request.add_header('referer', base_url)
             response = urllib2.urlopen(request, encoded_params)
 
         decodedResponse = response.read().decode('utf-8')
@@ -75,67 +72,70 @@ def openURL(url, params=None, protocol=None):
         logger.error(e)
 
 
-def createToken(baseURL, username, password):
+def createToken(base_url, username, password):
     print("\nCreating token...")
-    tokenURL = "{}/tokens/generateToken".format(baseURL)
-    params = {"username": username,
-              "password": password,
-              "client": 'referer',
-              "referer": baseURL}
 
-    resp = openURL(tokenURL, params)
+    tokenURL = "{}/tokens/generateToken".format(base_url)
+    params = {
+        "username": username,
+        "password": password,
+        "client": 'referer',
+        "referer": base_url
+    }
 
-    print(tokenURL)
-    print(params)
-    print(resp)
+    resp = openURL(url=tokenURL, params=params, base_url=base_url)
+
+    print("\tToken URL: " + tokenURL)
+    print("\tParams: {}".format(params))
+    print("\tResponse: {}".format(resp))
 
     if "token" in resp:
-        return resp['token']
+        return resp.get('token')
 
     else:
+        # TODO: Create custom error 'Token Error'
         raise Exception("Can't get token: {}".format(resp))
 
-    return token
 
+def startStopService(service, start_or_stop, token, base_url):
+    print("\n{}ING Service...".format(start_or_stop.upper()))
 
-def startStopService(service, start_or_stop):
-    print("{}ING Service...".format(start_or_stop.upper()))
+    params = {"token": token}
 
-    serviceName = urllib2.urlparse.urlparse(service).path.split("/")[-1]
-    resp = openURL("{}/{}".format(service, start_or_stop), params)
+    service_name = urllib2.urlparse.urlparse(service).path.split("/")[-1]
+    resp = openURL(url="{}/{}".format(service, start_or_stop), params=params, base_url=base_url)
 
-    if "status" in resp and resp['status'] == 'success':
-        print("Successfully {}ED {}".format(start_or_stop, serviceName))
+    if resp.get("status") == 'success':
+        print("\tSuccessfully {}ED {}".format(start_or_stop, service_name))
 
     else:
-        print("Unable to {} {}.\n {}".format(start_or_stop, serviceName, resp))
+        print("\tUnable to {} {}.".format(start_or_stop, service_name))
+        print("\t*'{}'".format(', '.join(resp.get("messages"))))
 
 
 if __name__ == "__main__":
+    ENVIRONMENT = "DEV"  # QA, PROD
+    SERVICE_UPDATE = "START"
 
-    token = createToken(baseURL, username, password)
-    params = {"token": token}
+    base_url = SERVICE_CONFIG.get(ENVIRONMENT).get("base_url")
+    services_url = "{}/admin/services/".format(base_url)
 
-    ##    try:
-    ##        for s in services:
-    ##            print s
-    ##            startStopService(s, "STOP")
-    ##            time.sleep(60) # make sure all locks are gone
-    ##    except:
-    ##        tb = sys.exc_info()[2]
-    ##        tbinfo = traceback.format_tb(tb)[0]
-    ##        pymsg = "PYTHON ERRORS:\nTraceback Info:\n" + tbinfo + "\nError Info:\n    " + \
-    ##                str(sys.exc_info()[0]) + ": " + str(sys.exc_info()[1]) + "\n"
-    ##        for s in services:
-    ##            print s
-    ##            startStopService(s, "START")
-    ##        exit()
+    pw = SERVICE_CONFIG.get(ENVIRONMENT).get("password")
+
+    token = createToken(base_url, USERNAME, pw)
+
+    services = [
+        services_url + "DDE/dde_map.MapServer",
+        # services_url + "HRM/ReGIS_EMO.MapServer",
+        # servicesURL + "HRMRegistry/HRMBaseData.MapServer",
+        # servicesURL + "CityWorks/Cityworks_Assets.MapServer",
+        # servicesURL + "CityWorks/Cityworks_Map.MapServer",
+    ]
 
     try:
         for service in services:
-            print service
-            startStopService(service, "START")
-            # startStopService(service, "STOP")
+            print "\nProcessing service: '{}'...".format(service)
+            startStopService(service, SERVICE_UPDATE, token, base_url)
 
     except:
         tb = sys.exc_info()[2]
