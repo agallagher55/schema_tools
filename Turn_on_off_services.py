@@ -10,6 +10,16 @@ import shutil
 import arcpy
 import httplib
 
+# TODO: Update so you can use keyword (dev, qa, prod) to start/stop service
+
+# server_name = "gisapp-int-dev.halifax.ca" #DEV
+# password = "panas0n1c" #DEV
+
+# server_name = "gisappa-int-qa.halifax.ca"  #QA Use this
+# password = "t0m@t0e"  # QA
+
+# server_name = "gisappa-int.halifax.ca"  # PROD use this.  This needs to be run on DC1-GIS-APP-P22 or DCQ-GIS-APP-P23
+# password = "e33pl@nt"  # PROD
 
 USERNAME = "siteadmin"
 
@@ -24,7 +34,7 @@ SERVICE_CONFIG = {
     },
     "PROD": {
         "password": "e33pl@nt",
-        "base_url": "https://gisappa-int.halifax.ca:6443/arcgis",  # PROD use this.  This needs to be run on DC1-GIS-APP-P22 or DCQ-GIS-APP-P23
+        "base_url": "https://gisappa-int.halifax.ca:6443/arcgis",
     },
 }
 
@@ -93,7 +103,6 @@ def createToken(base_url, username, password):
         return resp.get('token')
 
     else:
-        # TODO: Create custom error 'Token Error'
         raise Exception("Can't get token: {}".format(resp))
 
 
@@ -134,7 +143,7 @@ if __name__ == "__main__":
 
     try:
         for service in services:
-            print "\nProcessing service: '{}'...".format(service)
+            print("\nProcessing service: '{}'...".format(service))
             startStopService(service, SERVICE_UPDATE, token, base_url)
 
     except:
