@@ -31,7 +31,7 @@ SERVICE_CONFIG = {
 
 def openURL(url, params=None, protocol=None, base_url=None):
     try:
-        print("Opening URL...")
+        print("\nOpening URL...")
 
         if params:
             params.update(dict(f="json"))
