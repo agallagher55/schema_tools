@@ -10,17 +10,6 @@ import shutil
 import arcpy
 import httplib
 
-# TODO: Update so you can use keyword (dev, qa, prod) to start/stop service
-
-# server_name = "gisapp-int-dev.halifax.ca" #DEV
-# password = "panas0n1c" #DEV
-
-# server_name = "gisappa-int-qa.halifax.ca"  #QA Use this
-# password = "t0m@t0e"  # QA
-
-# server_name = "gisappa-int.halifax.ca"  # PROD use this.  This needs to be run on DC1-GIS-APP-P22 or DCQ-GIS-APP-P23
-# password = "e33pl@nt"  # PROD
-
 USERNAME = "siteadmin"
 
 SERVICE_CONFIG = {
@@ -95,9 +84,9 @@ def createToken(base_url, username, password):
 
     resp = openURL(url=tokenURL, params=params, base_url=base_url)
 
-    print("\tToken URL: " + tokenURL)
-    print("\tParams: {}".format(params))
-    print("\tResponse: {}".format(resp))
+    print("Token URL: " + tokenURL)
+    print("Params: {}".format(json.dumps(params, indent=4)))
+    print("Response: {}".format(json.dumps(resp, indent=4)))
 
     if "token" in resp:
         return resp.get('token')
@@ -118,36 +107,48 @@ def startStopService(service, start_or_stop, token, base_url):
         print("\tSuccessfully {}ED {}".format(start_or_stop, service_name))
 
     else:
-        print("\tUnable to {} {}.".format(start_or_stop, service_name))
+        print("\tERROR: Unable to {} {}.".format(start_or_stop, service_name))
         print("\t*'{}'".format(', '.join(resp.get("messages"))))
 
 
 if __name__ == "__main__":
-    ENVIRONMENT = "DEV"  # QA, PROD
-    SERVICE_UPDATE = "START"
-
-    base_url = SERVICE_CONFIG.get(ENVIRONMENT).get("base_url")
-    services_url = "{}/admin/services/".format(base_url)
-
-    pw = SERVICE_CONFIG.get(ENVIRONMENT).get("password")
-
-    token = createToken(base_url, USERNAME, pw)
+    # PROD needs to be run on DC1-GIS-APP-P22 or DCQ-GIS-APP-P23
 
     services = [
-        services_url + "DDE/dde_map.MapServer",
-        # services_url + "HRM/ReGIS_EMO.MapServer",
-        # servicesURL + "HRMRegistry/HRMBaseData.MapServer",
-        # servicesURL + "CityWorks/Cityworks_Assets.MapServer",
-        # servicesURL + "CityWorks/Cityworks_Map.MapServer",
+        "HRMRegistry/ParkingServices.MapServer",
+        # "HRMRegistry/HRMBaseData.MapServer",
+        # "CityWorks/Cityworks_Assets.MapServer",
+        # "CityWorks/Cityworks_Map.MapServer",
+
+        # "HRM/ReGIS_EMO.MapServer",
+        # "DDE/dde_map.MapServer",
     ]
 
-    try:
-        for service in services:
-            print("\nProcessing service: '{}'...".format(service))
-            startStopService(service, SERVICE_UPDATE, token, base_url)
+    for env in [
+        "DEV", 
+        "QA", 
+        "PROD"
+    ]:
 
-    except:
-        tb = sys.exc_info()[2]
-        tbinfo = traceback.format_tb(tb)[0]
-        pymsg = "PYTHON ERRORS:\nTraceback Info:\n" + tbinfo + "\nError Info:\n    " + \
-                str(sys.exc_info()[0]) + ": " + str(sys.exc_info()[1]) + "\n"
+        base_url = SERVICE_CONFIG.get(env).get("base_url")
+        pw = SERVICE_CONFIG.get(env).get("password")
+
+        services_url = "{}/admin/services/".format(base_url)
+        
+        token = createToken(base_url, USERNAME, pw)
+
+        for update in "STOP", "START":
+            print("\nUpdating {} server services...".format(env))
+
+            try:
+                for service in services:
+                    full_service_url = services_url + service
+
+                    print("\nService: '{}'...".format(full_service_url))
+                    startStopService(full_service_url, update, token, base_url)
+
+            except:
+                tb = sys.exc_info()[2]
+                tbinfo = traceback.format_tb(tb)[0]
+                pymsg = "PYTHON ERRORS:\nTraceback Info:\n" + tbinfo + "\nError Info:\n    " + \
+                        str(sys.exc_info()[0]) + ": " + str(sys.exc_info()[1]) + "\n"
