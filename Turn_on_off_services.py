@@ -115,33 +115,39 @@ if __name__ == "__main__":
     # PROD needs to be run on DC1-GIS-APP-P22 or DCQ-GIS-APP-P23
 
     services = [
-        "HRMRegistry/ParkingServices.MapServer",
-        # "HRMRegistry/HRMBaseData.MapServer",
-        # "CityWorks/Cityworks_Assets.MapServer",
-        # "CityWorks/Cityworks_Map.MapServer",
+        "EditingApps/BuildingData_FireInspections.MapServer",
 
-        # "HRM/ReGIS_EMO.MapServer",
-        # "DDE/dde_map.MapServer",
+        "HRM/ReGIS_EMO.MapServer",
+
+        "DDE/dde_map.MapServer",
+
+        "CityWorks/Cityworks_Assets.MapServer",
+        "CityWorks/Cityworks_Map.MapServer",
+
+        # "HRMRegistry/ParkingServices.MapServer",
+        # "HRMRegistry/HRMBaseData.MapServer",
+
     ]
 
     for env in [
-        "DEV", 
-        "QA", 
-        "PROD"
+        # "DEV",
+        "QA",
+        # "PROD"
     ]:
 
         base_url = SERVICE_CONFIG.get(env).get("base_url")
         pw = SERVICE_CONFIG.get(env).get("password")
 
-        services_url = "{}/admin/services/".format(base_url)
-        
         token = createToken(base_url, USERNAME, pw)
 
-        for update in "STOP", "START":
+        # for update in "STOP", "START":
+        for update in "START", :
             print("\nUpdating {} server services...".format(env))
 
             try:
                 for service in services:
+                    services_url = "{}/admin/services/".format(base_url)
+
                     full_service_url = services_url + service
 
                     print("\nService: '{}'...".format(full_service_url))
@@ -150,5 +156,5 @@ if __name__ == "__main__":
             except:
                 tb = sys.exc_info()[2]
                 tbinfo = traceback.format_tb(tb)[0]
-                pymsg = "PYTHON ERRORS:\nTraceback Info:\n" + tbinfo + "\nError Info:\n    " + \
+                pymsg = "PYTHON ERRORS:\nTraceback Info:\n{}" + tbinfo + "\nError Info:\n    " + \
                         str(sys.exc_info()[0]) + ": " + str(sys.exc_info()[1]) + "\n"
