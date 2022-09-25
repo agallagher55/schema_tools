@@ -64,7 +64,7 @@ def transfer_domains(domains: Iterable[str], output_workspace, from_workspace):
     :return:
     """
 
-    print(f"\nTransfering domains from {from_workspace} to {output_workspace}...")
+    print(f"\nTransferring domains from {from_workspace} to {output_workspace}...")
     
     for count, domain in enumerate(domains, start=1):
         print(f"\n{count}/{len(domains)}) {domain}")
@@ -74,7 +74,7 @@ def transfer_domains(domains: Iterable[str], output_workspace, from_workspace):
 
         domain_info = from_workspace_domains[domain]
         # Check that domain is in output_workspace_domains
-        if domain not in output_workspace_domains:
+        if domain not in from_workspace_domains:
             raise IndexError(f"Did not find '{domain}' in source workspace - {output_workspace}")
 
         if domain not in output_workspace_domains:
@@ -99,3 +99,6 @@ def transfer_domains(domains: Iterable[str], output_workspace, from_workspace):
             except arcpy.ExecuteError as e:
                 print(e)
                 print(arcpy.GetMessages(2))
+
+
+    return domains
