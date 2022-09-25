@@ -1,5 +1,7 @@
 import arcpy
 
+from typing import Iterable
+
 
 def add_code_value(workspace, domain_name, code, value):
     # TODO: Check if code already exists
@@ -53,7 +55,15 @@ def assign_to_field(feature, domain_name, field_name, subtypes: list):
     )
 
 
-def transfer_domains(domains, output_workspace, from_workspace):
+def transfer_domains(domains: Iterable[str], output_workspace, from_workspace):
+    """
+
+    :param domains:
+    :param output_workspace:
+    :param from_workspace:
+    :return:
+    """
+
     print(f"\nTransfering domains from {from_workspace} to {output_workspace}...")
     
     for count, domain in enumerate(domains, start=1):
@@ -63,6 +73,9 @@ def transfer_domains(domains, output_workspace, from_workspace):
         output_workspace_domains = [x.name for x in arcpy.da.ListDomains(output_workspace)]
 
         domain_info = from_workspace_domains[domain]
+        # Check that domain is in output_workspace_domains
+        if domain not in output_workspace_domains:
+            raise IndexError(f"Did not find '{domain}' in source workspace - {output_workspace}")
 
         if domain not in output_workspace_domains:
             arcpy.CreateDomain_management(
