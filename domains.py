@@ -1,6 +1,6 @@
 import arcpy
 
-from typing import Iterable
+from typing import Sequence
 
 
 def add_code_value(workspace, domain_name, code, value):
@@ -55,7 +55,7 @@ def assign_to_field(feature, domain_name, field_name, subtypes: list):
     )
 
 
-def transfer_domains(domains: Iterable[str], output_workspace, from_workspace):
+def transfer_domains(domains: Sequence[str], output_workspace, from_workspace):
     """
 
     :param domains:
