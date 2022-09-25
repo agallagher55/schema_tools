@@ -65,17 +65,21 @@ def transfer_domains(domains: Sequence[str], output_workspace, from_workspace):
     """
 
     print(f"\nTransferring domains from {from_workspace} to {output_workspace}...")
-    
-    for count, domain in enumerate(domains, start=1):
-        print(f"\n{count}/{len(domains)}) {domain}")
 
-        from_workspace_domains = {x.name: x.codedValues for x in arcpy.da.ListDomains(from_workspace)}
-        output_workspace_domains = [x.name for x in arcpy.da.ListDomains(output_workspace)]
+    from_workspace_domains = {x.name: x.codedValues for x in arcpy.da.ListDomains(from_workspace)}
+    output_workspace_domains = [x.name for x in arcpy.da.ListDomains(output_workspace)]
+    
+    unfound_domains = list()
+
+    for count, domain in enumerate(domains, start=1):
+        print(f"\n{count}/{len(domains)}) Domain: '{domain}'")
 
         domain_info = from_workspace_domains[domain]
+
         # Check that domain is in output_workspace_domains
         if domain not in from_workspace_domains:
-            raise IndexError(f"Did not find '{domain}' in source workspace - {output_workspace}")
+            unfound_domains.append(domain)
+            print(f"Did not find '{domain}' in source workspace - {output_workspace}")
 
         if domain not in output_workspace_domains:
             arcpy.CreateDomain_management(
@@ -86,9 +90,8 @@ def transfer_domains(domains: Sequence[str], output_workspace, from_workspace):
                 domain_type="CODED"
             )
 
-        for code, value in domain_info.items():
-            try:
-                print(f"\tAdding ({code}: {value}) to '{domain}' domain")
+            for code, value in domain_info.items():
+                print(f"\tAdding ({code}: {value})")
                 arcpy.AddCodedValueToDomain_management(
                     in_workspace=output_workspace,
                     domain_name=domain,
@@ -96,9 +99,7 @@ def transfer_domains(domains: Sequence[str], output_workspace, from_workspace):
                     code_description=value
                 )
 
-            except arcpy.ExecuteError as e:
-                print(e)
-                print(arcpy.GetMessages(2))
+        else:
+            print(f"\t'{domain}' is already in the output workspace!")
 
-
-    return domains
+    return {"unfound_domains": unfound_domains, "domains": domains}
