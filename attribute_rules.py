@@ -1,3 +1,5 @@
+import os.path
+
 import arcpy
 
 
@@ -13,13 +15,15 @@ def check_for_rules(feature, rules: list):
 
     feature_rules = arcpy.Describe(feature).attributeRules
 
-    rule_names = [r.name for r in feature_rules]
-    rules_not_found = [x for x in rules if x not in rule_names]
+    rules_found = [r.name for r in feature_rules]
+    rules_not_found = [x for x in rules if x not in rules_found]
 
     if rules_not_found:
-        print(f"\t*Did NOT find rules: {' ,'.join(rules_not_found)}")
+        print(f"\t*Did NOT find rule(s): {' ,'.join(rules_not_found)}")
+        print(f"\tRules found: {' ,'.join(rules_found)}")
+        return False
 
-    return rules_not_found
+    return True
 
 
 def toggle_rule(rule_names: list, rule_type: str, feature, enable_disable: str):
@@ -56,6 +60,59 @@ def toggle_rule(rule_names: list, rule_type: str, feature, enable_disable: str):
             names=rule_names,
             type=rule_type
         )
+
+
+def add_sequence_rule(workspace, feature_name, field_name, sequence_prefix=""):
+    print("\nAdding Sequence Attribute Rule...")
+
+    rule_description = f"{os.path.basename(feature_name)} - {field_name} - Generate ID"
+    expression = f"'{sequence_prefix}' + NextSequenceValue('sdeadm.{field_name}')"  # for SDE features
+
+    in_feature = os.path.join(workspace, feature_name)
+
+    # Make sure Attribute Rule does not already exist.
+    rule_exists = check_for_rules(
+        feature=os.path.join(workspace, feature_name),
+        rules=[rule_description]
+    )
+
+    if rule_exists:
+        print(f"Rule '{rule_description}' already exists!")
+        return True
+
+    if ".gdb" in workspace:
+        expression = f"'{sequence_prefix}' + NextSequenceValue('{field_name}')"
+
+    try:
+        print(f"\tCreating db sequence {field_name}...")
+        arcpy.CreateDatabaseSequence_management(
+            in_workspace=workspace,
+            seq_name=field_name,
+            seq_start_id=1,
+            seq_inc_value=1
+        )
+
+    except arcpy.ExecuteError as e:
+        print(f"ARCPY ERROR: {e}")
+
+    print("\tAdding Attribute Rule...")
+    arcpy.AddAttributeRule_management(
+        in_table=in_feature,
+        name=rule_description,
+        type="CALCULATION",
+        script_expression=expression,
+        is_editable="NONEDITABLE",
+        triggering_events="INSERT",
+        # error_number="optional",
+        # error_message="optional",
+        description=rule_description,
+        # subtype="optional",
+        field=field_name,
+        exclude_from_client_evaluation="EXCLUDE",
+        batch="NOT_BATCH",
+        # severity="optional",
+        tags="sequence;"
+    )
 
 
 if __name__ == "__main__":
