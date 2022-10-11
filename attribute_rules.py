@@ -13,10 +13,11 @@ def check_for_rules(feature, rules: list):
 
     print(f"\nChecking for Attribute Rules in {feature}...")
 
+    rules = [x.upper().strip() for x in rules]
     feature_rules = arcpy.Describe(feature).attributeRules
 
-    rules_found = [r.name for r in feature_rules]
-    rules_not_found = [x for x in rules if x not in rules_found]
+    rules_found = [r.name.upper().strip() for r in feature_rules]
+    rules_not_found = [x.upper().strip() for x in rules if x not in rules_found]
 
     if rules_not_found:
         print(f"\t*Did NOT find rule(s): {' ,'.join(rules_not_found)}")
