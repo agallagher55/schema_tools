@@ -1,8 +1,6 @@
 import arcpy
 import functools
 
-from typing import Sequence
-
 
 def arcpy_messages(func):
 
@@ -29,13 +27,13 @@ def arcpy_messages(func):
 def add_code_value(workspace, domain_name, code, value):
     """
     - Add domain code, value to domain domain_name
-    :param workspace: 
-    :param domain_name: 
-    :param code: 
-    :param value: 
-    :return: 
+    :param workspace:
+    :param domain_name:
+    :param code:
+    :param value:
+    :return:
     """
-    
+
     # TODO: Check if code already exists
 
     print(f"\nAdding domain code, value: '{code}' & '{value}' to domain '{domain_name}'...")
@@ -96,7 +94,7 @@ def assign_to_field(feature, domain_name, field_name, subtypes):
 
 
 @arcpy_messages
-def transfer_domains(domains: Sequence[str], output_workspace, from_workspace) -> dict:
+def transfer_domains(domains: list, output_workspace, from_workspace) -> dict:
     """
     - Transfer domains from from_workspace to output_workspace. Only domain types of CODED, TEXT will be valid
 
@@ -106,7 +104,7 @@ def transfer_domains(domains: Sequence[str], output_workspace, from_workspace) -
     :return: {"unfound_domains": unfound_domains, "domains": domains}
     """
 
-    print(f"\nTransferring domains from {from_workspace} to {output_workspace}...")
+    print(f"\nTransferring domains from '{from_workspace}' to '{output_workspace}'...")
     from_workspace_domains = {x.name: x.codedValues for x in arcpy.da.ListDomains(from_workspace)}
     output_workspace_domains = [x.name for x in arcpy.da.ListDomains(output_workspace)]
 
