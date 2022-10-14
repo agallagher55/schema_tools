@@ -60,7 +60,7 @@ def remove_code_value(workspace, domain_name, code):
 
 
 @arcpy_messages
-def domains_in_db(db, domains):
+def domains_in_db(db, domains: list):
     """
     - Make sure domain exists in database
     :param db:
