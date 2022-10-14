@@ -1,7 +1,5 @@
 import arcpy
-import time
 
-database_conn = r'Database Connections\Enterprise.sde'
 
 # DEV
 dev_rw = "C:\\Users\\gallaga\\AppData\\Roaming\\Esri\\ArcGISPro\\Favorites\\DEV_RW_SDEADM.sde"
@@ -43,7 +41,8 @@ prod_connections = [
 
 
 def prevent_connections(sde):
-
+    import time
+    
     with arcpy.EnvManager(workspace=sde):
         # Block new connections to the database.
         try:
