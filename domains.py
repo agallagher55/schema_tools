@@ -27,6 +27,15 @@ def arcpy_messages(func):
 
 @arcpy_messages
 def add_code_value(workspace, domain_name, code, value):
+    """
+    - Add domain code, value to domain domain_name
+    :param workspace: 
+    :param domain_name: 
+    :param code: 
+    :param value: 
+    :return: 
+    """
+    
     # TODO: Check if code already exists
 
     print(f"\nAdding domain code, value: '{code}' & '{value}' to domain '{domain_name}'...")
