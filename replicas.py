@@ -23,7 +23,7 @@ def sync_replicas(replica_name, rw_sde, ro_sde):
         in_direction="FROM_GEODATABASE1_TO_2",
         conflict_policy="IN_FAVOR_OF_GDB1",
         conflict_definition="BY_OBJECT",
-        reconcile="RECONCILE"
+        reconcile="RECONCILE "  # BUG: ARCPY
     )
 
 
@@ -31,14 +31,27 @@ def add_to_replica(replica_name, rw_sde, ro_sde, replica_features: list):
     """
     - Unregister if replica already exists
     - Add feature(s) to replica
+    - Does not check to see if replica_features are already in rw, ro replicas
     :param replica_name:
     :param rw_sde:
     :param ro_sde:
     :return:
     """
 
+    with arcpy.EnvManager(workspace=ro_sde):
+        # Check to see if feature exists in ro workspace
+        invalid_ro_features = [x for x in replica_features if not arcpy.Exists(x)]
+
+        if invalid_ro_features:
+            raise ValueError(f"ERROR: Did not find features in {ro_sde}: {', '.join(invalid_ro_features)}")
+
     with arcpy.EnvManager(workspace=rw_sde):
         sde_replica_name = f"SDEADM.{replica_name}"
+
+        # Check to see if feature exists in rw workspace
+        invalid_rw_features = [x for x in replica_features if not arcpy.Exists(x)]
+        if invalid_rw_features:
+            raise ValueError(f"ERROR: Did not find features in {rw_sde}: {', '.join(invalid_rw_features)}")
 
         # Check if replica with the same name already exists
         curr_workspace_replicas = [x for x in arcpy.da.ListReplicas(rw_sde)]
@@ -55,20 +68,16 @@ def add_to_replica(replica_name, rw_sde, ro_sde, replica_features: list):
             # Add features already in replica to list of features given to the user
             replica_features = curr_replica_features + replica_features
 
+            # Synchronize replicas to update RO feature(s)
+            sync_replicas(replica_name, rw_sde, ro_sde)
+
+            # Unregister rw, ro replicas so they can be recreated with additional features
             for db in rw_sde, ro_sde:
-
-                try:
-                    # Synchronize replicas
-                    sync_replicas(replica_name, rw_sde, ro_sde)
-
-                    print(f"\tUnregistering replica '{sde_replica_name}' from {db}...")
-                    arcpy.UnregisterReplica_management(
-                        db,
-                        sde_replica_name
-                    )
-
-                except arcpy.ExecuteError as e:
-                    print(e)
+                print(f"\tUnregistering replica '{sde_replica_name}' from {db}...")
+                arcpy.UnregisterReplica_management(
+                    db,
+                    sde_replica_name
+                )
 
         print(f"Creating replica: '{sde_replica_name}' with features: {', '.join(replica_features)}...'")
 
@@ -103,3 +112,6 @@ if __name__ == "__main__":
 
     # add_to_replica(replica_name, RW_SDE, RO_SDE, ["SDEADM.LND_charge_areas", "SDEADM.LND_special_planning_areas"])
     add_to_replica(replica_name, RW_SDE, RO_SDE, ["SDEADM.LND_subdiv_applications"])
+
+    # TODO: Test adding new features to existing replica
+        # TODO: Test syncing changes before adding new features
