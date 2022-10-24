@@ -1,12 +1,12 @@
 import os
 import arcpy
 
-from schema_tools import attribute_rules, connections, utils
+import attribute_rules, connections, utils
 
-from schema_tools.domains import transfer_domains, domain_in_db
+from domains import transfer_domains, domain_in_db
 
-from schema_tools.SpatialDataSubmissionForms.features import Feature
-from schema_tools.SpatialDataSubmissionForms.reporter import FieldsReport, DomainsReport
+from SpatialDataSubmissionForms.features import Feature
+from SpatialDataSubmissionForms.reporter import FieldsReport, DomainsReport
 
 arcpy.env.overwriteOutput = True
 arcpy.SetLogHistory(False)
