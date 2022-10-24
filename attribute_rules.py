@@ -97,6 +97,7 @@ def add_sequence_rule(workspace, feature_name, field_name, sequence_prefix=""):
         print(f"ARCPY ERROR: {e}")
 
     print("\tAdding Attribute Rule...")
+    print(f"\t\tExpression: {expression}")
     arcpy.AddAttributeRule_management(
         in_table=in_feature,
         name=rule_description,
