@@ -105,7 +105,7 @@ def transfer_domains(domains: list, output_workspace, from_workspace) -> dict:
     """
 
     print(f"\nTransferring domains from '{from_workspace}' to '{output_workspace}'...")
-    from_workspace_domains = {x.name: x.codedValues for x in arcpy.da.ListDomains(from_workspace)}
+    from_workspace_domains = {x.name: {"coded_values": x.codedValues, "type": x.type} for x in arcpy.da.ListDomains(from_workspace)}
     output_workspace_domains = [x.name for x in arcpy.da.ListDomains(output_workspace)]
 
     unfound_domains = list()
@@ -113,35 +113,40 @@ def transfer_domains(domains: list, output_workspace, from_workspace) -> dict:
     for count, domain in enumerate(domains, start=1):
         print(f"\n{count}/{len(domains)}) Domain: '{domain}'")
 
-        # Check that domain is in source workspace
-        if domain not in from_workspace_domains:
+        # Check for domain in source workspace
+        if domain not in list(from_workspace_domains.keys()):
             unfound_domains.append(domain)
             print(f"\tDid NOT find '{domain}' in source workspace - {from_workspace}")
-            
+
         else:
-            # Check that domain doesn't already exist in output workspace
-            if domain not in output_workspace_domains:
-    
+
+            # Check for domain in output workspace
+            if domain.upper() not in [d.upper() for d in output_workspace_domains]:
+
+                field_type = from_workspace_domains.get(domain).get("type")
+
+                # Create domain in output workspace if it doesn't already exist
                 arcpy.CreateDomain_management(
                     in_workspace=output_workspace,
                     domain_name=domain,
                     domain_description=domain,
-                    field_type="TEXT",
+                    field_type=field_type,
                     domain_type="CODED"
                 )
 
+                # Add domain codes and values
+                domain_info = from_workspace_domains.get(domain).get("coded_values")
+
+                for code, value in domain_info.items():
+                    print(f"\tAdding ({code}: {value})")
+                    arcpy.AddCodedValueToDomain_management(
+                        in_workspace=output_workspace,
+                        domain_name=domain,
+                        code=code,
+                        code_description=value
+                    )
+
             else:
                 print(f"\t'{domain}' is already in the output workspace!")
-
-            domain_info = from_workspace_domains.get(domain)
-
-            for code, value in domain_info.items():
-                print(f"\tAdding ({code}: {value})")
-                arcpy.AddCodedValueToDomain_management(
-                    in_workspace=output_workspace,
-                    domain_name=domain,
-                    code=code,
-                    code_description=value
-                )
 
     return {"unfound_domains": unfound_domains, "domains": domains}
