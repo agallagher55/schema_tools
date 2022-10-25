@@ -54,6 +54,13 @@ class FieldsReport(Report):
 
         return df_field_details
 
+    def domain_fields(self) -> dict:
+        domain_fields = self.field_details[["Field Name", "Domain", "Field Type"]][~self.field_details["Domain"].isnull()]
+
+        domain_fields_info = domain_fields.to_dict("records")
+
+        return domain_fields_info
+
 
 class DomainsReport(Report):
     def __init__(self, excel_path, sheet_name="DATASET DETAILS"):
@@ -65,7 +72,7 @@ class DomainsReport(Report):
 
         self.domain_info()
 
-    def domain_info(self):
+    def domain_info(self) -> dict:
         """
 
         :return:
