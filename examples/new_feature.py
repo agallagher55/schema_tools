@@ -3,7 +3,7 @@ import arcpy
 
 import attribute_rules, connections, utils
 
-from domains import transfer_domains, domain_in_db
+from domains import transfer_domains
 
 from SpatialDataSubmissionForms.features import Feature
 from SpatialDataSubmissionForms.reporter import FieldsReport, DomainsReport
@@ -45,15 +45,15 @@ EDIT_PRIVILEGE = "#"  # "GRANT"
 
 
 if __name__ == "__main__":
-    sub_info_xl = r"T:\work\giss\monthly\202210oct\gallaga\Beach Mobility - New Feature\LND_beachmobility17Oct2022.xlsx"
+    info_xl = r"T:\work\giss\monthly\202210oct\gallaga\Bus Shelters\Bus Shelter Point Representation Change 20Oct2022.xlsx"
 
     sheet_name = "DATASET DETAILS"
 
     AUTO_INC_IDS = {
-        'LND_beach_mobility': {
-            "field": "MobilityID",
-            "prefix": "MOB"
-        }
+        'TRN_transit_shelter': [
+            {"field": "ASSETID", "prefix": "SHE"},
+            {"field": "SHELTERID", "prefix": "SHE"}
+        ]
     }
 
     CURRENT_DIR = os.getcwd()
@@ -61,10 +61,10 @@ if __name__ == "__main__":
     local_gdb = utils.create_fgdb(out_folder_path=CURRENT_DIR, out_name="scratch.gdb")
 
     for dbs in [
-        # [local_gdb]
+        [local_gdb]
         # connections.dev_connections,
         # connections.qa_connections,
-        connections.prod_connections
+        # connections.prod_connections
     ]:
 
         for count, db in enumerate(dbs, start=1):
@@ -73,7 +73,7 @@ if __name__ == "__main__":
             db_type, db_rights = connections.connection_type(db)
 
             for xl_file in [
-                sub_info_xl
+                info_xl
             ]:
                 print(f"\nCreating feature from {xl_file}...")
                 fields_report = FieldsReport(xl_file)
@@ -96,13 +96,26 @@ if __name__ == "__main__":
                 if new_domains:
                     print(f"\nNew domains to create: {', '.join(new_domains)}")
 
+                    # TODO: Get FIELD TYPE for domains
+                    domain_field_types = fields_report.domain_fields()
+
                     for domain in new_domains:
+
                         try:
-                            print(f"\tCreating domain '{domain}'...")
+                            domain_field_type = "TEXT"
+
+                            # Get domain field type
+                            domain_field_info = [x for x in domain_field_types if x.get("Domain") == domain]
+
+                            if domain_field_info:
+                                domain_field_type = domain_field_info[0].get("Field Type")
+
+                            print(f"\n\tCreating {domain_field_type} domain '{domain}'...")
+
                             arcpy.management.CreateDomain(
                                 in_workspace=db,
-                                domain_name=domain.upper(),
-                                field_type="TEXT",
+                                domain_name=domain,
+                                field_type=domain_field_type,
                                 domain_type="CODED"
                             )
                             # Sometimes this says it 'fails', but domain still gets created
@@ -267,15 +280,16 @@ if __name__ == "__main__":
                     # TODO: Get field name for Charge Area unique id field
 
                     if feature_name in AUTO_INC_IDS:
-                        id_field = AUTO_INC_IDS.get(feature_name).get("field")
-                        prefix = AUTO_INC_IDS.get(feature_name).get("prefix")
+                        for field in AUTO_INC_IDS.get(feature_name):
+                            id_field = field.get("field")
+                            prefix = field.get("prefix")
 
-                        attribute_rules.add_sequence_rule(
-                            workspace=db,
-                            feature_name=new_feature.feature,
-                            field_name=id_field,
-                            sequence_prefix=prefix
-                        )
+                            attribute_rules.add_sequence_rule(
+                                workspace=db,
+                                feature_name=new_feature.feature,
+                                field_name=id_field,
+                                sequence_prefix=prefix
+                            )
 
     """
     NOTES:
