@@ -45,14 +45,14 @@ EDIT_PRIVILEGE = "#"  # "GRANT"
 
 
 if __name__ == "__main__":
-    info_xl = r"T:\work\giss\monthly\202210oct\gallaga\Bus Shelters\Bus Shelter Point Representation Change 20Oct2022.xlsx"
+    info_xl = r"T:\work\giss\monthly\202210oct\gallaga\Pedestrian Ramps\Pedestrian Ramps Tactiles 10May2022.xlsx"
 
     sheet_name = "DATASET DETAILS"
 
     AUTO_INC_IDS = {
-        'TRN_transit_shelter': [
-            {"field": "ASSETID", "prefix": "SHE"},
-            {"field": "SHELTERID", "prefix": "SHE"}
+        'AST_ped_ramp': [
+            {"field": "PEDRMPID", "prefix": "RMP"},
+            {"field": "ASSETID", "prefix": "RMP"}
         ]
     }
 
@@ -86,20 +86,28 @@ if __name__ == "__main__":
                 field_data = fields_report.field_details
 
                 domains_report = DomainsReport(xl_file)
-                domains = domains_report.domain_names
+                new_domains = domains_report.domain_names
                 domain_info = domains_report.domain_data
 
+                # Get domain fields
+                domain_field_types = fields_report.domain_fields()
+
+                domain_field_domains = list({d.get("Domain") for d in domain_field_types})
+
                 # Add domains from SDE to local gdb
-                new_domains = transfer_domains(domains=domains, output_workspace=db, from_workspace=SDE_PROD_RW).get("unfound_domains")
+                unfound_domains = transfer_domains(
+                    domains=domain_field_domains,
+                    output_workspace=db,
+                    from_workspace=SDE_PROD_RW
+                ).get("unfound_domains")
 
                 # Create any new domains
-                if new_domains:
-                    print(f"\nNew domains to create: {', '.join(new_domains)}")
+                if unfound_domains:
+                    print(f"\nNew domains to create: {', '.join(unfound_domains)}")
 
                     # TODO: Get FIELD TYPE for domains
-                    domain_field_types = fields_report.domain_fields()
 
-                    for domain in new_domains:
+                    for domain in unfound_domains:
 
                         try:
                             domain_field_type = "TEXT"
@@ -290,6 +298,8 @@ if __name__ == "__main__":
                                 field_name=id_field,
                                 sequence_prefix=prefix
                             )
+
+    # TODO: Create indicies for ID fields
 
     """
     NOTES:
