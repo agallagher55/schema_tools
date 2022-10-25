@@ -116,7 +116,7 @@ def transfer_domains(domains: list, output_workspace, from_workspace) -> dict:
         # Check for domain in source workspace
         if domain not in list(from_workspace_domains.keys()):
             unfound_domains.append(domain)
-            print(f"\tDid NOT find '{domain}' in source workspace - {from_workspace}")
+            print(f"\tDid NOT find '{domain}' in source workspace ({from_workspace})")
 
         else:
 
