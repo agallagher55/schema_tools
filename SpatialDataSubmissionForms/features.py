@@ -73,6 +73,10 @@ class Feature:
     @arcpy_messages
     def add_field(self, field_name: str, field_type: str, length: int, alias: str, nullable: str, domain_name: str):
         """
+        Although the Field object's type property values are not an exact match for the keywords used by the Add Field
+        tool's field_type parameter, all of the Field object's type values can be used as input to this parameter.
+        The different field types are mapped as follows: Integer to LONG, String to TEXT, and SmallInteger to SHORT.
+
            :param field_name:
            :param field_type:
            :param length:
@@ -111,10 +115,11 @@ class Feature:
         if nullable not in ("NULLABLE", "NON_NULLABLE", None, "#"):
             raise ValueError(f"Nullable Value, '{nullable}' does not appear to be a valid value!")
 
-        if field_type == "SHORT":
-            field_precision = input("Please provide field precision: ")
-        else:
-            field_precision = "#"  # int
+        # if field_type == "SHORT":
+        #     field_precision = input("Please provide field precision: ")
+        #
+        # else:
+        #     field_precision = "#"  # int
 
         print(f"\nAdding Field: '{field_name}'...")
 
@@ -122,7 +127,8 @@ class Feature:
             in_table=self.feature,
             field_name=field_name,  # Field Name
             field_type=field_type,  # Field Type
-            field_precision=field_precision,
+            # field_precision=field_precision,
+            field_precision="#",
             field_scale="#",
             field_length=length,  # Field Length (# of characters)
             field_alias=alias,  # Alias
