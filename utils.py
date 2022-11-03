@@ -32,36 +32,6 @@ def create_fgdb(out_folder_path, out_name="scratch.gdb"):
     return fgdb
 
 
-def copy_feature(copy_feature, output_workspace):
-    """
-    - Copy Features, carrying over domains
-    :param copy_feature:
-    :param output_workspace:
-    :return:
-    """
-
-    print(f"\nCopying '{copy_feature}' to {output_workspace}...")
-
-    feature_name = arcpy.Describe(copy_feature).name.replace("SDEADM.", "")  # Remove SDEADM.
-    output_feature = os.path.join(output_workspace, feature_name)
-
-    with arcpy.EnvManager(workspace=output_workspace):
-        workspace_features = arcpy.ListFeatureClasses()
-
-        # Check if feature already exists in workspace
-        if feature_name not in workspace_features:
-
-            arcpy.Copy_management(
-                in_data=copy_feature,
-                out_data=output_feature
-            )
-
-            return output_feature
-
-        else:
-            print(f"\t*{feature_name} already exists in {output_workspace}.")
-
-
 def setupLog(fileName):
     formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s: %(message)s', datefmt='%m-%d-%Y %H:%M:%S')
 
