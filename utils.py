@@ -27,7 +27,7 @@ def create_fgdb(out_folder_path, out_name="scratch.gdb"):
         return workspace_path
 
     fgdb = arcpy.CreateFileGDB_management(out_folder_path, out_name).getOutput(0)
-    print("\tFile Geodatabase created!")
+    print(f"\tFile Geodatabase {out_name} created in {out_folder_path}!")
 
     return fgdb
 
