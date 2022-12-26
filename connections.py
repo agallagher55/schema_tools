@@ -98,7 +98,24 @@ def check_connections(db_connections: [[]]):
     return {"valid_connections": success}
 
 
-def connection_type(db):
+def connection_type(db: str) -> (str, str):
+    """
+    Determine the type and read-write status of a database.
+
+    This function takes in a database name and prints a message indicating the type and read-write status of the database. It returns a tuple containing the type and read-write status of the database.
+
+    Input:
+    db (str): A string representing the name of a database.
+
+    Output:
+    A tuple containing the type and read-write status of the database. The type can be "SDE" or "GDB", and the read-write status can be "RW" or "RO". If the database type or read-write status cannot be determined, the corresponding value in the tuple will be an empty string.
+
+    Examples:
+    connection_type("RW_SDEADM") -> ("SDE", "RW")
+    connection_type("RO_SDEADM") -> ("SDE", "RO")
+    connection_type("database.gdb") -> ("GDB", "")
+    """
+    
     print("\nAnalyzing database type...")
 
     rw_sde_db = "RW_SDEADM" in db
