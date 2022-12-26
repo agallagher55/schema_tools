@@ -119,6 +119,8 @@ def connection_type(db: str) -> (str, str):
 
     print("\nAnalyzing database type...")
 
+    db = db.upper()
+
     rw_sde_db = "RW_SDEADM" in db
     ro_sde_db = "RO_SDEADM" in db or (db.endswith(".gdb") and "RO" in db)
 
