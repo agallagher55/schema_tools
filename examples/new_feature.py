@@ -5,6 +5,8 @@ import connections
 import attribute_rules
 import utils
 
+from configparser import ConfigParser
+
 from domains import transfer_domains, domains_in_db
 
 from SpatialDataSubmissionForms.features import Feature
@@ -13,12 +15,15 @@ from SpatialDataSubmissionForms.reporter import FieldsReport, DomainsReport
 arcpy.env.overwriteOutput = True
 arcpy.SetLogHistory(False)
 
+config = ConfigParser()
+config.read('config.ini')
+
 READY_TO_ADD_TO_REPLICA = False
 
-# SDE_PROD_RW = r"C:\Users\gallaga\AppData\Roaming\Esri\ArcGISPro\Favorites\PROD_RW_SDEADM.sde"
-SDE_PROD_RW = r"E:\HRM\Scripts\SDE\prod_RW_sdeadm.sde"
+# SDE = r"C:\Users\gallaga\AppData\Roaming\Esri\ArcGISPro\Favorites\PROD_RW_SDEADM.sde"
+SDE = r"E:\HRM\Scripts\SDE\prod_RW_sdeadm.sde"
 
-SPATIAL_REFERENCE = os.path.join(SDE_PROD_RW, "SDEADM.LND_hrm_parcel_parks", "SDEADM.LND_hrm_park")
+SPATIAL_REFERENCE = os.path.join(SDE, "SDEADM.LND_hrm_parcel_parks", "SDEADM.LND_hrm_park")
 
 USER_PRIVILEGE = "PUBLIC"
 VIEW_PRIVILEGE = "GRANT"
@@ -47,7 +52,8 @@ if __name__ == "__main__":
 
     for dbs in [
         # [local_gdb],
-        connections.dev_connections,
+        # connections.dev_connections,
+        [config.get("SERVER", "dev_rw")],
         # connections.qa_connections,
         # connections.prod_connections
     ]:
@@ -63,7 +69,7 @@ if __name__ == "__main__":
                 print(f"\nCreating feature from {xl_file}...")
                 fields_report = FieldsReport(xl_file)
 
-                feature_name = fields_report.feature_class_name
+                feature_name = fields_report.feature_class_name  # Should be all lower case except for the prefix
                 feature_shape = fields_report.feature_shape
 
                 if feature_shape == "Line":
@@ -85,7 +91,7 @@ if __name__ == "__main__":
                     new_domains = transfer_domains(
                         domains=domains,
                         output_workspace=db,
-                        from_workspace=SDE_PROD_RW
+                        from_workspace=SDE
                     ).get("unfound_domains")
 
                 else:
@@ -136,7 +142,7 @@ if __name__ == "__main__":
                 # If workspace is RW and NOT RO, create the feature and add fields
                 if (db_type == "SDE" and db_rights == "RW") or (db_type == "GDB" and not db_rights):
 
-                    # Create feature
+                    # Create feature (uses feature class to feature class
                     new_feature = Feature(
                         workspace=db,
                         feature_name=feature_name,
@@ -196,6 +202,7 @@ if __name__ == "__main__":
                     # ADD EDITOR TRACKING FIELDS
                     new_feature.add_editor_tracking_fields()
 
+                    # TODO: Copy from RW into RO instead of re-creating feature
                     if db_type == "SDE" and db_rights == "RW":
 
                         if READY_TO_ADD_TO_REPLICA:
