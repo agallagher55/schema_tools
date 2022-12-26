@@ -23,13 +23,17 @@ SPATIAL_REFERENCE = os.path.join(SDE_PROD_RW, "SDEADM.LND_hrm_parcel_parks", "SD
 USER_PRIVILEGE = "PUBLIC"
 VIEW_PRIVILEGE = "GRANT"
 
+IMMUTABLE_FIELDS = {
+    "OBJECTID", "GLOBALID", "ADDBY", "ADDDATE",
+    "MODBY", "MODDATE", "SHAPE", "SHAPE_AREA", "SHAPE_LENGTH"
+}
+
 
 if __name__ == "__main__":
-    traffic_calming_info_xl = r"T:\work\giss\monthly\202212dec\gallaga\Trafic Calming Assessment\scripts\TCA_DataRequest.xlsx"
-
+    sdsf = r"T:\work\giss\monthly\202212dec\gallaga\Trafic Calming Assessment\scripts\TCA_DataRequest.xlsx"
     sheet_name = "DATASET DETAILS"
 
-    AUTO_INC_IDS = {
+    unique_id_fields = {
         'TRN_Traffic_Calming_Assessment': {
             "field": "TRFSPDID",
             "prefix": "TRFSPD"
@@ -50,16 +54,18 @@ if __name__ == "__main__":
         for count, db in enumerate(dbs, start=1):
             print(f"\n{count}/{len(dbs)}) Database: {db}")
 
+            # Determine the type and read-write status of a database. Ex) SDE + RW, SDE + RO, GDB, etc.
             db_type, db_rights = connections.connection_type(db)
 
             for xl_file in [
-                traffic_calming_info_xl,
+                sdsf,
             ]:
                 print(f"\nCreating feature from {xl_file}...")
                 fields_report = FieldsReport(xl_file)
 
                 feature_name = fields_report.feature_class_name
                 feature_shape = fields_report.feature_shape
+
                 if feature_shape == "Line":
                     feature_shape = "Polyline"
 
@@ -68,19 +74,19 @@ if __name__ == "__main__":
                 domains_report = DomainsReport(xl_file)
                 domains = domains_report.domain_names
 
-                # Append any LONG, additional, pre-existing domains not outlined in the SPSF here.
+                # Append any LONG, additional, pre-existing domains not outlined in the SDSF here.
                 # domains.append("TRN_StreetName")  # Manually add TRN_StreetName domain
 
                 domain_info = domains_report.domain_data
 
-                # if scratch_gdb or ro_gdb:
                 if db_type == "GDB":
 
                     # Transfer existing domains to local dgb and find new domains not in SDE
                     new_domains = transfer_domains(
                         domains=domains,
                         output_workspace=db,
-                        from_workspace=SDE_PROD_RW).get("unfound_domains")
+                        from_workspace=SDE_PROD_RW
+                    ).get("unfound_domains")
 
                 else:
                     # Check for new domains not found in sde
@@ -102,14 +108,14 @@ if __name__ == "__main__":
                             )
                             # Sometimes this says it 'fails', but domain still gets created
 
-                        except arcpy.ExecuteError as e:
-                            print(f"Arcpy Error: {e}")
+                        except arcpy.ExecuteError:
+                            arcpy_msg = arcpy.GetMessages(2)
+                            print(f"Arcpy Error: {arcpy_msg}")
                             print(f"^^^*(Sometimes this fails in the script, but domain still gets created.)")
 
-                        # Add code, values
                         domain_info = domains_report.domain_data.get(domain)
 
-                        # for code, value in domain_info.items():
+                        # Populate new domains with codes and values:
                         for row in domain_info.itertuples():
                             code = row.Code
                             desc = row.Description
@@ -121,10 +127,11 @@ if __name__ == "__main__":
                                 code=code,
                                 code_description=desc
                             )
+
                 else:
                     print("\nNO new domains to create.")
 
-                # If workspace is RW and NOT RO
+                # If workspace is RW and NOT RO, create the feature and add fields
                 if (db_type == "SDE" and db_rights == "RW") or (db_type == "GDB" and not db_rights):
 
                     # Create feature
@@ -135,21 +142,15 @@ if __name__ == "__main__":
                         spatial_reference=SPATIAL_REFERENCE
                     )
 
-                    # ADD FIELDS, applying domain if applicable
                     print("\nAdding Fields...")
-
-                    ignore_fields = {
-                        "OBJECTID", "GLOBALID", "ADDBY", "ADDDATE",
-                        "MODBY", "MODDATE", "SHAPE", "SHAPE_AREA", "SHAPE_LENGTH"
-                    }
                     feature_fields = field_data["Field Name"].values
 
-                    for row_num, row in field_data.iterrows():  # TODO: shape area, shape length fields is appearing first
+                    for row_num, row in field_data.iterrows():
 
                         field_name = row["Field Name"].upper().strip()
                         field_length = row["Field Length (# of characters)"]
 
-                        if field_name not in ignore_fields:
+                        if field_name not in IMMUTABLE_FIELDS:
 
                             if field_length:
                                 field_length = int(field_length)
@@ -160,11 +161,9 @@ if __name__ == "__main__":
                             alias = row["Alias"]
                             field_type = row["Field Type"]
                             field_len = field_length
-                            # nullable = row["Nullable"] or "NON_NULLABLE"
                             nullable = row["Nullable"]
                             default_value = row["Default Value"]
                             domain = row["Domain"] or "#"
-                            notes = row["Notes"]
 
                             new_feature.add_field(
                                 field_name=field_name.upper(),
@@ -198,6 +197,7 @@ if __name__ == "__main__":
                     if db_type == "SDE" and db_rights == "RW":
 
                         if READY_TO_ADD_TO_REPLICA:
+
                             # Register as Versioned
                             new_feature.register_as_versioned()
 
@@ -207,26 +207,13 @@ if __name__ == "__main__":
 
                             # TODO: Do we need to copy to web_ro.gdb ? Or only if, and when, we need to publish service?
                             ro_feature = os.path.join(ro_sde_db, new_feature.feature)
+
                             if not arcpy.Exists(ro_feature):
                                 print("\tCopying RW feature to RO db...")
                                 ro_feature = arcpy.CopyFeatures_management(
                                     in_features=new_feature.feature,
                                     out_feature_class=os.path.join(ro_sde_db, feature_name)
                                 )[0]
-
-                                # ro_feature = arcpy.FeatureClassToFeatureClass_conversion(
-                                #     in_features=new_feature.feature,
-                                #     out_path=ro_sde_db,
-                                #     out_name=feature_name
-                                # )[0]
-
-                            # TODO: PAUSE & add feature to existing replica using COMMAND LINE SCRIPT
-
-                            # T:\work\giss\tools\ModifyReplica
-                            # - May have to alter command if feature is a table
-                            # "C:\Users\gallaga\AppData\Roaming\Esri\ArcGISPro\Favorites\DEV_RO_SDEADM.sde"
-                            # a) ModifyReplica.exe -w C:\Users\gallaga\AppData\Roaming\Esri\ArcGISPro\Favorites\DEV_RO_SDEADM.sde -r SDEADM.LND_Rosde -d SDEADM.LND_charge_areas
-                            # b) ModifyReplica.exe -w C:\Workspace\Release\10_4\sdeadm_PROD_GIS_HRM_RW_Win.sde -r SDEADM.LND_Rosde -d SDEADM.LND_charge_areas
 
                             # input("\nAdd feature to existing replica using COMMAND LINE SCRIPT\n")
 
@@ -247,14 +234,12 @@ if __name__ == "__main__":
                     new_feature.enable_editor_tracking()
 
                     # Attribute Rules - Add after feature has been copied to Read-Only. RW and .gdb only
-                    # TODO: Add spot in excel sheet to flag unique, auto-incrementing IDs
-                    # TODO: Get field name for Charge Area unique id field
+                    if feature_name in unique_id_fields:
 
-                    if feature_name in AUTO_INC_IDS:
-                        print(f"Adding Attribute Rule to {feature_name}...")
-
-                        id_field = AUTO_INC_IDS.get(feature_name).get("field")
-                        prefix = AUTO_INC_IDS.get(feature_name).get("prefix")
+                        id_field = unique_id_fields.get(feature_name).get("field")
+                        prefix = unique_id_fields.get(feature_name).get("prefix")
+                        
+                        print(f"Creating Sequence and Attribute Rule for {id_field} with prefix {prefix}...")
 
                         attribute_rules.add_sequence_rule(
                             workspace=db,
@@ -262,10 +247,9 @@ if __name__ == "__main__":
                             field_name=id_field,
                             sequence_prefix=prefix
                         )
+                        
+                        # TODO: Add attribute index
 
 
 # TODO: Unable to add features to replica (RO)
 # TODO: Add to WGS84 script once in prod. (DC1-GIS-APP-P22)
-
-# TODO: TRN_StreetName domain wasn't carried over
-# TODO: Needs the unique id sequence applied
