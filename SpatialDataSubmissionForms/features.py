@@ -2,14 +2,36 @@ import arcpy
 import os
 import functools
 
-from .reporter import FieldsReport
+from reporter import FieldsReport
 
-from .settings import (
-    EDITOR_TRACKING_FIELD_INFO,
+from settings import (
     SPATIAL_REFERENCE_FEATURE
 )
 
 arcpy.env.overwriteOutput = True
+
+EDITOR_TRACKING_FIELD_INFO = {
+    "ADDBY": {
+        "field_type": "TEXT",
+        "field_length": 32,
+        "field_alias": "Add By"
+    },
+    "MODBY": {
+        "field_type": "TEXT",
+        "field_length": 32,
+        "field_alias": "Modified By"
+    },
+    "ADDDATE": {
+        "field_type": "DATE",
+        "field_length": "",
+        "field_alias": "Add Date"
+    },
+    "MODDATE": {
+        "field_type": "DATE",
+        "field_length": "",
+        "field_alias": "Modified Date"
+    },
+}
 
 
 def arcpy_messages(func):
