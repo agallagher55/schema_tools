@@ -39,7 +39,7 @@ if __name__ == "__main__":
     sheet_name = "DATASET DETAILS"
 
     unique_id_fields = {
-        'TRN_Traffic_Calming_Assessment': {
+        'TRN_traffic_calming_assessment': {
             "field": "TRFSPDID",
             "prefix": "TRFSPD"
         },
