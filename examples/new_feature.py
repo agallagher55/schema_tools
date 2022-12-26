@@ -1,9 +1,11 @@
 import os
 import arcpy
 
-import attribute_rules, connections, utils
+import connections
+import attribute_rules
+import utils
 
-from domains import transfer_domains
+from domains import transfer_domains, domains_in_db
 
 from SpatialDataSubmissionForms.features import Feature
 from SpatialDataSubmissionForms.reporter import FieldsReport, DomainsReport
@@ -13,47 +15,26 @@ arcpy.SetLogHistory(False)
 
 READY_TO_ADD_TO_REPLICA = False
 
-SDE_PROD_RW = r"C:\Users\gallaga\AppData\Roaming\Esri\ArcGISPro\Favorites\PROD_RW_SDEADM.sde"
-SPATIAL_REFERENCE = os.path.join(SDE_PROD_RW, "SDEADM.LND_hrm_parcel_parks", "SDEADM.LND_hrm_park")
+# SDE_PROD_RW = r"C:\Users\gallaga\AppData\Roaming\Esri\ArcGISPro\Favorites\PROD_RW_SDEADM.sde"
+SDE_PROD_RW = r"E:\HRM\Scripts\SDE\prod_RW_sdeadm.sde"
 
-EDITOR_TRACKING_FIELD_INFO = {
-    "ADDBY": {
-        "field_type": "TEXT",
-        "field_length": 32,
-        "field_alias": "Add By"
-    },
-    "MODBY": {
-        "field_type": "TEXT",
-        "field_length": 32,
-        "field_alias": "Modified By"
-    },
-    "ADDDATE": {
-        "field_type": "DATE",
-        "field_length": "",
-        "field_alias": "Add Date"
-    },
-    "MODDATE": {
-        "field_type": "DATE",
-        "field_length": "",
-        "field_alias": "Modified Date"
-    },
-}
+SPATIAL_REFERENCE = os.path.join(SDE_PROD_RW, "SDEADM.LND_hrm_parcel_parks", "SDEADM.LND_hrm_park")
 
 USER_PRIVILEGE = "PUBLIC"
 VIEW_PRIVILEGE = "GRANT"
-EDIT_PRIVILEGE = "#"  # "GRANT"
 
 
 if __name__ == "__main__":
-    info_xl = r"T:\work\giss\monthly\202210oct\gallaga\Pedestrian Ramps\Pedestrian Ramps Tactiles 10May2022.xlsx"
+    traffic_calming_info_xl = r"T:\work\giss\monthly\202212dec\gallaga\Trafic Calming Assessment\scripts\TCA_DataRequest.xlsx"
 
     sheet_name = "DATASET DETAILS"
 
     AUTO_INC_IDS = {
-        'AST_ped_ramp': [
-            {"field": "PEDRMPID", "prefix": "RMP"},
-            {"field": "ASSETID", "prefix": "RMP"}
-        ]
+        'TRN_Traffic_Calming_Assessment': {
+            "field": "TRFSPDID",
+            "prefix": "TRFSPD"
+        },
+
     }
 
     CURRENT_DIR = os.getcwd()
@@ -66,14 +47,13 @@ if __name__ == "__main__":
         # connections.qa_connections,
         # connections.prod_connections
     ]:
-
         for count, db in enumerate(dbs, start=1):
             print(f"\n{count}/{len(dbs)}) Database: {db}")
 
             db_type, db_rights = connections.connection_type(db)
 
             for xl_file in [
-                info_xl
+                traffic_calming_info_xl,
             ]:
                 print(f"\nCreating feature from {xl_file}...")
                 fields_report = FieldsReport(xl_file)
@@ -86,45 +66,39 @@ if __name__ == "__main__":
                 field_data = fields_report.field_details
 
                 domains_report = DomainsReport(xl_file)
-                new_domains = domains_report.domain_names
+                domains = domains_report.domain_names
+
+                # Append any LONG, additional, pre-existing domains not outlined in the SPSF here.
+                # domains.append("TRN_StreetName")  # Manually add TRN_StreetName domain
+
                 domain_info = domains_report.domain_data
 
-                # Get domain fields
-                domain_field_types = fields_report.domain_fields()
+                # if scratch_gdb or ro_gdb:
+                if db_type == "GDB":
 
-                domain_field_domains = list({d.get("Domain") for d in domain_field_types})
+                    # Transfer existing domains to local dgb and find new domains not in SDE
+                    new_domains = transfer_domains(
+                        domains=domains,
+                        output_workspace=db,
+                        from_workspace=SDE_PROD_RW).get("unfound_domains")
 
-                # Add domains from SDE to local gdb
-                unfound_domains = transfer_domains(
-                    domains=domain_field_domains,
-                    output_workspace=db,
-                    from_workspace=SDE_PROD_RW
-                ).get("unfound_domains")
+                else:
+                    # Check for new domains not found in sde
+                    domains_in_sde, new_domains = domains_in_db(db, domains)
 
                 # Create any new domains
-                if unfound_domains:
-                    print(f"\nNew domains to create: {', '.join(unfound_domains)}")
+                if new_domains:
+                    print(f"\nNew domains to create: {', '.join(new_domains)}")
 
-                    # TODO: Get FIELD TYPE for domains
-
-                    for domain in unfound_domains:
-
+                    for domain in new_domains:
                         try:
-                            domain_field_type = "TEXT"
-
-                            # Get domain field type
-                            domain_field_info = [x for x in domain_field_types if x.get("Domain") == domain]
-
-                            if domain_field_info:
-                                domain_field_type = domain_field_info[0].get("Field Type")
-
-                            print(f"\n\tCreating {domain_field_type} domain '{domain}'...")
-
+                            print(f"\tCreating domain '{domain}'...")
                             arcpy.management.CreateDomain(
                                 in_workspace=db,
                                 domain_name=domain,
-                                field_type=domain_field_type,
-                                domain_type="CODED"
+                                field_type="TEXT",
+                                domain_type="CODED",
+                                domain_description=""
                             )
                             # Sometimes this says it 'fails', but domain still gets created
 
@@ -135,6 +109,7 @@ if __name__ == "__main__":
                         # Add code, values
                         domain_info = domains_report.domain_data.get(domain)
 
+                        # for code, value in domain_info.items():
                         for row in domain_info.itertuples():
                             code = row.Code
                             desc = row.Description
@@ -149,8 +124,6 @@ if __name__ == "__main__":
                 else:
                     print("\nNO new domains to create.")
 
-                # ALL Workspaces
-
                 # If workspace is RW and NOT RO
                 if (db_type == "SDE" and db_rights == "RW") or (db_type == "GDB" and not db_rights):
 
@@ -162,7 +135,7 @@ if __name__ == "__main__":
                         spatial_reference=SPATIAL_REFERENCE
                     )
 
-                    # Add fields, applying domain if applicable
+                    # ADD FIELDS, applying domain if applicable
                     print("\nAdding Fields...")
 
                     ignore_fields = {
@@ -171,11 +144,10 @@ if __name__ == "__main__":
                     }
                     feature_fields = field_data["Field Name"].values
 
-                    for row_num, row in field_data.iterrows():  # TODO: shape area, shape length fields is appearing first (only for local geodatabase)
+                    for row_num, row in field_data.iterrows():  # TODO: shape area, shape length fields is appearing first
 
                         field_name = row["Field Name"].upper().strip()
                         field_length = row["Field Length (# of characters)"]
-                        field_type = row["Field Type"]
 
                         if field_name not in ignore_fields:
 
@@ -188,7 +160,8 @@ if __name__ == "__main__":
                             alias = row["Alias"]
                             field_type = row["Field Type"]
                             field_len = field_length
-                            nullable = row["Nullable"] or "NON_NULLABLE"
+                            # nullable = row["Nullable"] or "NON_NULLABLE"
+                            nullable = row["Nullable"]
                             default_value = row["Default Value"]
                             domain = row["Domain"] or "#"
                             notes = row["Notes"]
@@ -203,7 +176,7 @@ if __name__ == "__main__":
                             )
 
                             if domain and domain != "#":
-                                print(f"\tField has domain: '{domain}'")
+                                print(f"\t\t{field_name} has domain: '{domain}'")
                                 new_feature.assign_domain(
                                     field_name=field_name,
                                     domain_name=domain
@@ -216,46 +189,36 @@ if __name__ == "__main__":
                                     value=default_value
                                 )
 
-                    # Add attribute index
-                    print(f"\nAdding index to 'MOBILITYID' field...")
-
-                    # try:
-                    #     arcpy.AddIndex_management(
-                    #         in_table=new_feature,
-                    #         fields="MOBILITYID",
-                    #         index_name="MobilityID",
-                    #         unique="UNIQUE"
-                    #     )
-                    #
-                    # except arcpy.ExecuteError:
-                    #     print(f"ERROR: Was unable to add attribute index.")
-                    #     print(arcpy.GetMessages(2))
-
-
                     # ADD GLOBAL IDS
                     new_feature.add_gloablids()
 
                     # ADD EDITOR TRACKING FIELDS
-                    new_feature.add_editor_tracking_fields(EDITOR_TRACKING_FIELD_INFO)
+                    new_feature.add_editor_tracking_fields()
 
                     if db_type == "SDE" and db_rights == "RW":
 
-                        # Register as Versioned
-                        new_feature.register_as_versioned()
-
                         if READY_TO_ADD_TO_REPLICA:
+                            # Register as Versioned
+                            new_feature.register_as_versioned()
 
                             # Copy RW feature to RO
                             ro_sde_db = db.replace("RW", "RO")
-                            ro_feature = os.path.join(ro_sde_db, new_feature.feature)
+                            ro_exists = arcpy.Exists(ro_sde_db)
 
                             # TODO: Do we need to copy to web_ro.gdb ? Or only if, and when, we need to publish service?
+                            ro_feature = os.path.join(ro_sde_db, new_feature.feature)
                             if not arcpy.Exists(ro_feature):
                                 print("\tCopying RW feature to RO db...")
                                 ro_feature = arcpy.CopyFeatures_management(
                                     in_features=new_feature.feature,
                                     out_feature_class=os.path.join(ro_sde_db, feature_name)
                                 )[0]
+
+                                # ro_feature = arcpy.FeatureClassToFeatureClass_conversion(
+                                #     in_features=new_feature.feature,
+                                #     out_path=ro_sde_db,
+                                #     out_name=feature_name
+                                # )[0]
 
                             # TODO: PAUSE & add feature to existing replica using COMMAND LINE SCRIPT
 
@@ -274,37 +237,35 @@ if __name__ == "__main__":
                             # TODO: Do NOT add to RW? Unsure when and how to do this
                             # TODO: SQL developer: GRANT SELECT ON SDEADM.TREEVAULTASSETID TO ATTRIBUTE_RULES_SEQ_ROLE;
 
-                    # ENABLE EDITOR TRACKING - Only for RW
-                    new_feature.enable_editor_tracking()
-
                     # Update Privileges
                     new_feature.change_privileges(
                         user=USER_PRIVILEGE,
                         view=VIEW_PRIVILEGE
                     )
 
+                    # ENABLE EDITOR TRACKING
+                    new_feature.enable_editor_tracking()
+
                     # Attribute Rules - Add after feature has been copied to Read-Only. RW and .gdb only
                     # TODO: Add spot in excel sheet to flag unique, auto-incrementing IDs
                     # TODO: Get field name for Charge Area unique id field
 
                     if feature_name in AUTO_INC_IDS:
-                        for field in AUTO_INC_IDS.get(feature_name):
-                            id_field = field.get("field")
-                            prefix = field.get("prefix")
+                        print(f"Adding Attribute Rule to {feature_name}...")
 
-                            attribute_rules.add_sequence_rule(
-                                workspace=db,
-                                feature_name=new_feature.feature,
-                                field_name=id_field,
-                                sequence_prefix=prefix
-                            )
+                        id_field = AUTO_INC_IDS.get(feature_name).get("field")
+                        prefix = AUTO_INC_IDS.get(feature_name).get("prefix")
 
-    # TODO: Create indicies for ID fields
-
-    """
-    NOTES:
-        - Unable to add features to replica (RO)
-        - Add to WGS84 script once in prod. (DC1-GIS-APP-P22)
-    """
+                        attribute_rules.add_sequence_rule(
+                            workspace=db,
+                            feature_name=new_feature.feature,
+                            field_name=id_field,
+                            sequence_prefix=prefix
+                        )
 
 
+# TODO: Unable to add features to replica (RO)
+# TODO: Add to WGS84 script once in prod. (DC1-GIS-APP-P22)
+
+# TODO: TRN_StreetName domain wasn't carried over
+# TODO: Needs the unique id sequence applied
