@@ -46,8 +46,8 @@ if __name__ == "__main__":
     local_gdb = utils.create_fgdb(out_folder_path=CURRENT_DIR, out_name="scratch.gdb")
 
     for dbs in [
-        [local_gdb]
-        # connections.dev_connections,
+        # [local_gdb],
+        connections.dev_connections,
         # connections.qa_connections,
         # connections.prod_connections
     ]:
@@ -98,7 +98,7 @@ if __name__ == "__main__":
 
                     for domain in new_domains:
                         try:
-                            print(f"\tCreating domain '{domain}'...")
+                            print(f"\n\tCreating domain '{domain}'...")
                             arcpy.management.CreateDomain(
                                 in_workspace=db,
                                 domain_name=domain,
@@ -116,7 +116,7 @@ if __name__ == "__main__":
                         domain_info = domains_report.domain_data.get(domain)
 
                         # Populate new domains with codes and values:
-                        # TODO: Sort new domains by domain values
+                        # Sort new domains by domain values
                         # for row in domain_info.itertuples():
                         for row in sorted([x for x in domain_info.itertuples()], key=lambda x: x.Description):
                             code = row.Code
