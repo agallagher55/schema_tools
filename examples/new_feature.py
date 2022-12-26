@@ -30,7 +30,7 @@ IMMUTABLE_FIELDS = {
 
 
 if __name__ == "__main__":
-    sdsf = r"T:\work\giss\monthly\202212dec\gallaga\Trafic Calming Assessment\scripts\TCA_DataRequest.xlsx"
+    sdsf = r"T:\work\giss\monthly\202212dec\gallaga\Traffic Calming Assessment\scripts\TCA_DataRequest.xlsx"
     sheet_name = "DATASET DETAILS"
 
     unique_id_fields = {
@@ -116,7 +116,9 @@ if __name__ == "__main__":
                         domain_info = domains_report.domain_data.get(domain)
 
                         # Populate new domains with codes and values:
-                        for row in domain_info.itertuples():
+                        # TODO: Sort new domains by domain values
+                        # for row in domain_info.itertuples():
+                        for row in sorted([x for x in domain_info.itertuples()], key=lambda x: x.Description):
                             code = row.Code
                             desc = row.Description
 
@@ -238,7 +240,7 @@ if __name__ == "__main__":
 
                         id_field = unique_id_fields.get(feature_name).get("field")
                         prefix = unique_id_fields.get(feature_name).get("prefix")
-                        
+
                         print(f"Creating Sequence and Attribute Rule for {id_field} with prefix {prefix}...")
 
                         attribute_rules.add_sequence_rule(
@@ -247,8 +249,20 @@ if __name__ == "__main__":
                             field_name=id_field,
                             sequence_prefix=prefix
                         )
-                        
-                        # TODO: Add attribute index
+
+                        print(f"\nAdding attribute index on {id_field}...")
+                        try:
+                            arcpy.AddIndex_management(
+                                in_table=new_feature.feature,
+                                fields=id_field,
+                                index_name="unique_id",
+                                unique="UNIQUE",
+                                ascending="ASCENDING"
+                            )
+
+                        except arcpy.ExecuteError:
+                            arcpy_msg = arcpy.GetMessages(2)
+                            print(arcpy_msg)
 
 
 # TODO: Unable to add features to replica (RO)
