@@ -2,11 +2,6 @@ import arcpy
 import os
 import functools
 
-from reporter import FieldsReport
-
-from settings import (
-    SPATIAL_REFERENCE_FEATURE
-)
 
 arcpy.env.overwriteOutput = True
 
@@ -35,7 +30,6 @@ EDITOR_TRACKING_FIELD_INFO = {
 
 
 def arcpy_messages(func):
-
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         try:
@@ -62,7 +56,7 @@ class Feature:
         self.geometry_type = geometry_type
         self.spatial_reference = spatial_reference
         self.alias = alias
-        
+
         self.feature = os.path.join(self.workspace, self.feature_name)
         self.fields = set()
 
@@ -286,6 +280,8 @@ class Feature:
 
 
 if __name__ == "__main__":
+    from reporter import FieldsReport
+
     for excel_file in EXCEL_FILES:
         print(f"\nEXCEL FILE: {excel_file}")
 
