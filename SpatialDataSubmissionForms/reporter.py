@@ -136,15 +136,3 @@ class DomainsReport(Report):
         self.domain_names = list(self.domain_data.keys())
 
         return domain_dataframes
-
-
-if __name__ == "__main__":
-    from settings import (
-        EXCEL_FILES
-    )
-
-    for excel_file in EXCEL_FILES:
-        print(f"Processing file: '{excel_file}'")
-        # field_data = FieldsReport(excel_file)
-        domain_data = DomainsReport(excel_file)
-        print(dir(domain_data))
