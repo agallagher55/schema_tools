@@ -1,6 +1,7 @@
 import arcpy
 import os
 import logging
+import functools
 
 
 def with_msgs(command):
@@ -8,13 +9,33 @@ def with_msgs(command):
     command
     print(arcpy.GetMessages(0))
     print('-' * 100)
+    
+    
+def arcpy_messages(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            result = func(*args, **kwargs)
+            messages = arcpy.GetMessages()
+            message_lines = messages.split("\n")
+
+            for message in message_lines:
+                if message:
+                    print(f"\t{message}")
+
+            return result
+
+        except arcpy.ExecuteError as e:
+            print(f"ARCPY ERROR: {e}")
+
+    return wrapper
 
 
 def create_fgdb(out_folder_path: str, out_name: str="scratch.gdb") -> str:
     """
     Creates a file geodatabase (fgdb) in the specified output folder.
 
-    :param out_folder_path: The path to the folder where the fgdb should be 
+    :param out_folder_path: The path to the folder where the fgdb should be
     :param out_name: The name for the fgdb. Default is "scratch.gdb".
     :return: The path to the file geodatabase.
     """
