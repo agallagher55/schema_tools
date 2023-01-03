@@ -10,13 +10,13 @@ def with_msgs(command):
     print('-' * 100)
 
 
-def create_fgdb(out_folder_path, out_name="scratch.gdb"):
+def create_fgdb(out_folder_path: str, out_name: str="scratch.gdb") -> str:
     """
-    Create scratch workspace (gdb)
+    Creates a file geodatabase (fgdb) in the specified output folder.
 
-    :param out_folder_path:
-    :param out_name:
-    :return: path to file geodatabase
+    :param out_folder_path: The path to the folder where the fgdb should be 
+    :param out_name: The name for the fgdb. Default is "scratch.gdb".
+    :return: The path to the file geodatabase.
     """
 
     print(f"\nCreating File Geodatabase '{out_name}'...")
