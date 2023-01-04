@@ -39,10 +39,16 @@ class FieldsReport(Report):
         self.field_details = self.field_info()
 
     def field_info(self):
+        new_fields = ("Subtype Field", )
         cols = (
             "Field Name", "Description", "Alias", "Field Type",
             "Field Length (# of characters)", "Nullable", "Default Value", "Domain", "Notes"
         )
+        
+        # Error Checking
+        # Make sure shape length, shape_area fields are included
+        if "SHAPE_AREA" not in [x.upper() for x in cols] or "SHAPE_LENGTH" not in [x.upper() for x in cols]:
+            raise IndexError(f"ERROR: SDSF needs to have SHAPE_AREA/LEGNTH fields.")
 
         df_field_details = self.df.loc["Field Name":"SHAPE_Length"]
         df_field_details.reset_index(inplace=True)
