@@ -37,6 +37,18 @@ class FieldsReport(Report):
     def __init__(self, excel_path, sheet_name="DATASET DETAILS"):
         super().__init__(excel_path, sheet_name)
         self.field_details = self.field_info()
+        self.subtype_fields = self.subtype_info()
+
+    def subtype_info(self) -> List[Any]:
+        # Get subtypes
+        fields_df = self.field_details
+        subtype_field_df = fields_df[fields_df["Subtype Field"].notnull()]
+
+        if not subtype_field_df.empty:
+            subtype_fields = [x for x in subtype_field_df["Field Name"]]
+            return subtype_fields
+
+        return []
 
     def field_info(self):
         new_fields = ("Subtype Field", )
