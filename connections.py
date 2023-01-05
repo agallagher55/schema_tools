@@ -122,10 +122,10 @@ def connection_type(db: str) -> (str, str):
     db = db.upper()
 
     rw_sde_db = "RW_SDEADM" in db
-    ro_sde_db = "RO_SDEADM" in db or (db.endswith(".gdb") and "RO" in db)
+    ro_sde_db = "RO_SDEADM" in db or (db.endswith(".GDB") and "RO" in db)
 
-    ro_gdb = db.endswith(".gdb") and "RO" in db
-    scratch_gdb = db.endswith(".gdb") and "RO" not in db
+    ro_gdb = db.endswith(".GDB") and "RO" in db
+    scratch_gdb = db.endswith(".GDB") and "RO" not in db
 
     if rw_sde_db:
         print(f"\t --> RW SDE")
