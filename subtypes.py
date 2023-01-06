@@ -10,7 +10,8 @@ def create_subtype(feature: str, subtype_field: str, subtypes: dict):
     param: feature (str): The path to the feature class.
     param: subtype_field (str): The field in the feature class that will be used for subtyping.
     param: subtypes (dict): A dictionary where the keys are subtype codes and the values are subtype descriptions.
-   """
+    """
+    
     print(f"\nCreating subtypes...")
 
     print(f"Setting subtype field on {feature} to {subtype_field}...")
