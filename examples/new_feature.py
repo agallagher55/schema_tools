@@ -45,6 +45,16 @@ if __name__ == "__main__":
         },
 
     }
+    
+    subtype_domain_field = "VENDLOC"
+    SUBTYPE_DOMAINS = {
+        "field": "VENDLOC",
+        "domains": [
+            {"code": 1, "domain": "LND_vendor_location_food_truck"},
+            {"code": 2, "domain": "LND_vendor_location_food_stand"},
+            {"code": 3, "domain": "LND_vendor_location_artisan"}
+        ]
+    }
 
     CURRENT_DIR = os.getcwd()
 
@@ -104,11 +114,19 @@ if __name__ == "__main__":
 
                     for domain in new_domains:
                         try:
+                            field_type = "TEXT"
+                            
+                            # Check if domain is a subtype domain
+                            if SUBTYPE_DOMAINS:
+                                if domain in [d["domain"] for d in SUBTYPE_DOMAINS["domains"]]:
+                                    field_type = "LONG"
+                                    print("\t*Subtype Domain Found!")
+
                             print(f"\n\tCreating domain '{domain}'...")
-                            arcpy.management.CreateDomain(
+                            arcpy.arcpy.CreateDomain_management(
                                 in_workspace=db,
                                 domain_name=domain,
-                                field_type="TEXT",
+                                field_type=field_type,
                                 domain_type="CODED",
                                 domain_description=""
                             )
