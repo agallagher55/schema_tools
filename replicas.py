@@ -1,20 +1,40 @@
 import arcpy
 
-RW_SDE = r"C:\Users\gallaga\AppData\Roaming\ESRI\ArcGISPro\Favorites\DEV_RW_sdeadm.sde"
-RO_SDE = r"C:\Users\gallaga\AppData\Roaming\ESRI\ArcGISPro\Favorites\DEV_RO_sdeadm.sde"
 
-# Synchronize
-# Unregister both replicas
-# Add feature to RW
-    # Version, GlobalIDs
+class Workspace:
+    def __init__(self, source: str):
+        self.source = source
 
-# Copy to RO
-# Register as versioned in RO??
+        if not arcpy.Exists(source):
+            raise ValueError(f"Workspace, '{source}' does not exist.")
 
-# Create replica
+    def replicas(self):
+        print(f"Getting replicas in '{self.source}'...")
+        return arcpy.da.ListReplicas(self.source)
 
 
-def sync_replicas(replica_name, rw_sde, ro_sde):
+class Replica:
+    def __init__(self, name: str, workspace: str):
+        self.name = name
+        self.workspace = workspace
+
+        self.replica = [x for x in arcpy.da.ListReplicas(workspace)][0]
+        self.datasets = self.datasets()
+
+    def datasets(self):
+        datasets = self.replica.datasets
+        return sorted(datasets)
+
+
+def sync_replicas(replica_name: str, rw_sde: str, ro_sde: str):
+    """
+    - Sync updates from RW to RO
+    :param replica_name:
+    :param rw_sde:
+    :param ro_sde:
+    :return:
+    """
+
     print(f"\nSynchronizing changes between replicas, '{replica_name}'...")
     arcpy.SynchronizeChanges_management(
         geodatabase_1=rw_sde,
@@ -27,11 +47,12 @@ def sync_replicas(replica_name, rw_sde, ro_sde):
     )
 
 
-def add_to_replica(replica_name, rw_sde, ro_sde, replica_features: list):
+def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, replica_features: list):
     """
     - Unregister if replica already exists
     - Add feature(s) to replica
     - Does not check to see if replica_features are already in rw, ro replicas
+
     :param replica_name:
     :param rw_sde:
     :param ro_sde:
@@ -98,10 +119,30 @@ def add_to_replica(replica_name, rw_sde, ro_sde, replica_features: list):
             out_xml=None
             )
 
-# Check versioning (traditional) of feature in RW
-
 
 if __name__ == "__main__":
+    # 1. Synchronize
+    # 2. Unregister both replicas
+    # 3. Copy versioned feature with GlobalIDs to RO
+    # 4.
+
+    DEV_RW_SDE = r"C:\Users\gallaga\AppData\Roaming\Esri\ArcGISPro\Favorites\DEV_RW_sdeadm.sde"
+    DEV_RO_SDE = r"C:\Users\gallaga\AppData\Roaming\Esri\ArcGISPro\Favorites\dev_RO_sdeadm.sde"
+
+    dev_rw_workpace = Workspace(DEV_RW_SDE)
+
+    PROD_RW_SDE = r"C:\Users\gallaga\AppData\Roaming\Esri\ArcGISPro\Favorites\prod_RW_sdeadm.sde"
+    PROD_RO_SDE = r"C:\Users\gallaga\AppData\Roaming\Esri\ArcGISPro\Favorites\prod_RO_sdeadm.sde"
+
+    # TODO: What replica is currently in prod, but not dev? --> SNF_Rosde
+
+    # Get datasets in replica 'SDEADM.LND_Rosde'
+    lnd_replica = Replica('SDEADM.LND_Rosde', DEV_RW_SDE)
+    lnd_datasets = lnd_replica.datasets
+
+    # SYNC
+    sync_replicas('SDEADM.LND_Rosde', DEV_RW_SDE, DEV_RO_SDE)
+
     replica_name = "replica_testing"
     # replica_features = ["SDEADM.LND_charge_areas", "SDEADM.LND_special_planning_areas"]
 
@@ -111,7 +152,8 @@ if __name__ == "__main__":
     ]
 
     # add_to_replica(replica_name, RW_SDE, RO_SDE, ["SDEADM.LND_charge_areas", "SDEADM.LND_special_planning_areas"])
-    add_to_replica(replica_name, RW_SDE, RO_SDE, ["SDEADM.LND_subdiv_applications"])
+    # add_to_replica(replica_name, RW_SDE, RO_SDE, ["SDEADM.LND_subdiv_applications"])
 
     # TODO: Test adding new features to existing replica
-        # TODO: Test syncing changes before adding new features
+    # TODO: Test syncing changes before adding new features
+
