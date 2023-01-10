@@ -14,6 +14,10 @@ class Workspace:
 
 
 class Replica:
+    """
+    https://pro.arcgis.com/en/pro-app/2.9/arcpy/data-access/replica.htm
+    """
+
     def __init__(self, name: str, workspace: str):
         self.name = name
         self.workspace = workspace
@@ -43,7 +47,7 @@ def sync_replicas(replica_name: str, rw_sde: str, ro_sde: str):
         in_direction="FROM_GEODATABASE1_TO_2",
         conflict_policy="IN_FAVOR_OF_GDB1",
         conflict_definition="BY_OBJECT",
-        reconcile="RECONCILE "  # BUG: ARCPY
+        reconcile="RECONCILE "
     )
 
 
@@ -58,6 +62,8 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, replica_features
     :param ro_sde:
     :return:
     """
+    
+    replica_name = replica_name.replace("SDEADM.", "")
 
     with arcpy.EnvManager(workspace=ro_sde):
         # Check to see if feature exists in ro workspace
@@ -134,7 +140,7 @@ if __name__ == "__main__":
     PROD_RW_SDE = r"C:\Users\gallaga\AppData\Roaming\Esri\ArcGISPro\Favorites\prod_RW_sdeadm.sde"
     PROD_RO_SDE = r"C:\Users\gallaga\AppData\Roaming\Esri\ArcGISPro\Favorites\prod_RO_sdeadm.sde"
 
-    # TODO: What replica is currently in prod, but not dev? --> SNF_Rosde
+    # Currently in prod, but not dev --> SNF_Rosde
 
     # Get datasets in replica 'SDEADM.LND_Rosde'
     lnd_replica = Replica('SDEADM.LND_Rosde', DEV_RW_SDE)
