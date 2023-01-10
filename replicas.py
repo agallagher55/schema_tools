@@ -141,6 +141,7 @@ if __name__ == "__main__":
     lnd_datasets = lnd_replica.datasets
 
     # SYNC
+    # Test by making change in rw db --> LND_GRASS_CONTRACT
     sync_replicas('SDEADM.LND_Rosde', DEV_RW_SDE, DEV_RO_SDE)
 
     replica_name = "replica_testing"
