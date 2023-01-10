@@ -276,6 +276,7 @@ if __name__ == "__main__":
                         )
 
                         print(f"\nAdding attribute index on {id_field}...")
+                        # TODO: only add index AFTER feature has been added to Read-only and add to replica
                         try:
                             arcpy.AddIndex_management(
                                 in_table=new_feature.feature,
