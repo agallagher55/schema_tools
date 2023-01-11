@@ -277,7 +277,6 @@ if __name__ == "__main__":
                             # input("\nAdd feature to existing replica using COMMAND LINE SCRIPT\n")
 
                             # TODO: Un-version RO feature. 
-                            #  Feature is un-versioned when copied over, but adding to replica versions the feature
                             print("\tRegistering RO feature as UN-versioned...")
                             arcpy.UnregisterAsVersioned_management(in_dataset=ro_feature)
 
