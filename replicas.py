@@ -1,16 +1,23 @@
 import arcpy
 
+REPLICAS = {
+    "TRN_Rosde", "SNF_Rosde", "ROAD_Rosde", "StrDir_Rosde", "MAP_Rosde", "LND_Rosde",
+    "EMO_Rosde", "CIV_Rosde", "BLD_LND_Rosde", "AST_Rosde", "ADM_Rosde"
+}
+
 
 class Workspace:
     def __init__(self, source: str):
         self.source = source
+
+        self.replicas = self.replicas()
 
         if not arcpy.Exists(source):
             raise ValueError(f"Workspace, '{source}' does not exist.")
 
     def replicas(self):
         print(f"Getting replicas in '{self.source}'...")
-        return arcpy.da.ListReplicas(self.source)
+        return sorted(arcpy.da.ListReplicas(self.source), key=lambda x: x.name)
 
 
 class Replica:
