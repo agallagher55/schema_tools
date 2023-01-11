@@ -115,13 +115,13 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
         if replica_exists:
             # Synchronize replicas to update RO feature(s)
             sync_replicas(replica_name, rw_sde, ro_sde)
-            
+
             # Get list of features ALREADY in the replica
             rw_replica = [x for x in rw_replicas if x.name == sde_replica_name][0]
             curr_replica_features = rw_replica.datasets
 
             # Add features already in replica to list of features given to the user
-            add_features = list(set(curr_replica_features + add_features))
+            add_features = sorted(list(set(curr_replica_features + add_features)))
 
             # Unregister rw, ro replicas so they can be recreated with additional features
             for db in rw_sde, ro_sde:
