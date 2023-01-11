@@ -64,19 +64,38 @@ def register_as_versioned(feature):
     print(arcpy.GetMessages(2))
 
 
-def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: list, topology_dataset=False):
+# TODO: Create helper functions to check if replica exists in a workspace, creating replica
+
+
+def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: list, topology_dataset: bool = False):
     """
+    This function is used to add feature(s) to a replica. 
+    
+    It checks that the feature exists in both the read-write (rw_sde) and read-only (ro_sde) geodatabases, 
+    then performs several steps to update the replica if it already exists or creates a new replica if it does not. 
+    
+    The steps include checking if the replica already exists, 
+    making sure the features to be added are versioned, 
+    unregistering the replica if it exists, 
+    and then creating a new replica with the added features. 
+    
+    The function has five parameters:
     - Unregister if replica already exists
     - Add feature(s) to replica
     - Does not check to see if replica_features are already in rw, ro replicas
 
-    :param replica_name:
-    :param rw_sde:
-    :param ro_sde:
+
+    :param replica_name: name of replica
+    :param rw_sde: read-write geodatabase
+    :param ro_sde: read-only geodatabase
+    :param add_features:  a list of feature(s) to be added to the replica
+    :param topology_dataset: will change to 'FULL' if it is True
     :return:
     """
 
     replica_name = replica_name.replace("SDEADM.", "")
+    sde_replica_name = f"SDEADM.{replica_name}"
+
     access_type = "SIMPLE"
 
     if topology_dataset:
@@ -94,7 +113,6 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
             raise ValueError(f"ERROR: Did not find features ({', '.join(invalid_ro_features)}) in {ro_sde}")
 
     with arcpy.EnvManager(workspace=rw_sde):
-        sde_replica_name = f"SDEADM.{replica_name}"
 
         # Check to see if feature exists in rw workspace
 
@@ -109,6 +127,8 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
         rw_replicas = [x for x in arcpy.da.ListReplicas(rw_sde)]
 
         replica_exists = sde_replica_name in [x.name for x in rw_replicas]
+        replica_exists = any(x.name == sde_replica_name for x in arcpy.da.ListReplicas(rw_sde))
+
         print(f"\tReplica already exists? {replica_exists}")
 
         # Check if add_features are versioned
@@ -156,3 +176,4 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
             out_type="GEODATABASE",
             out_xml=None
         )
+        
