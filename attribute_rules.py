@@ -85,6 +85,15 @@ def add_sequence_rule(workspace, feature_name, field_name, sequence_prefix=""):
         expression = f"'{sequence_prefix}' + NextSequenceValue('{field_name}')"
 
     try:
+        arcpy.DeleteDatabaseSequence_management(
+            in_workspace=workspace,
+            seq_name=field_name
+        )
+        
+    except arcpy.ExecuteError:
+        print(arcpy.GetMessages(2))
+
+    try:
         print(f"\tCreating db sequence {field_name}...")
         arcpy.CreateDatabaseSequence_management(
             in_workspace=workspace,
