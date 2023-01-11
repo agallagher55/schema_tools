@@ -20,7 +20,10 @@ arcpy.SetLogHistory(False)
 config = ConfigParser()
 config.read('config.ini')
 
-READY_TO_ADD_TO_REPLICA = False
+READY_TO_ADD_TO_REPLICA = True
+REPLICA_NAME = "LND_Rosde"
+
+TOPOLOGY_DATASET = False
 
 # SDE = config.get("LOCAL", "prod_rw")
 SDE = config.get("SERVER", "prod_rw")
@@ -217,37 +220,6 @@ if __name__ == "__main__":
                             )
 
                             if domain and domain != "#":
-                                # if domain.upper() == "SUBTYPE":
-                                #     subtype_domain_info = {key: value for key, value in subtype_data.items() if subtype_data[key].get("domain_field") == field_name.upper()}
-                                #     subtype_domain_fields = {x.get("domain_field") for x in subtype_domain_info.values()}
-                                #
-                                #     print(f"Setting subtype field on {new_feature.feature} to {subtype_field}...")
-                                #     arcpy.SetSubtypeField_management(
-                                #         in_table=new_feature.feature,
-                                #         field=subtype_field  # TODO: Update to vendtrype  # Integer field
-                                #     )
-                                #
-                                #     for domain in subtype_domain_info:
-                                #         sub_code = subtype_domain_info[domain].get("subtype_code")
-                                #         sub_field = subtype_domain_info[domain].get("domain_field")
-                                #
-                                #         print(f"Subcode: {sub_code}")
-                                #         print(f"\tSub Field: {sub_field}")
-                                #
-                                #         arcpy.AddSubtype_management(
-                                #             in_table=new_feature.feature,
-                                #             subtype_code=sub_code,
-                                #             subtype_description=None
-                                #         )
-                                #
-                                #         print(f"\t\t{sub_field} has domain: '{domain}'")
-                                #         new_feature.assign_domain(
-                                #             field_name=sub_field,
-                                #             domain_name=domain,
-                                #             subtypes=sub_code
-                                #         )
-
-                                # else:
                                 print(f"\t\t{field_name} has domain: '{domain}'")
                                 new_feature.assign_domain(
                                     field_name=field_name,
@@ -271,7 +243,6 @@ if __name__ == "__main__":
                     # SUBTYPES
                     create_subtype(new_feature.feature, SUBTYPE_FIELD, SUBTYPES, SUBTYPE_DOMAINS)
 
-                    # TODO: Copy from RW into RO instead of re-creating feature
                     if db_type == "SDE" and db_rights == "RW":
 
                         if READY_TO_ADD_TO_REPLICA:
@@ -288,14 +259,25 @@ if __name__ == "__main__":
 
                             if not arcpy.Exists(ro_feature):
                                 print("\tCopying RW feature to RO db...")
+                                # We don't need to use Copy tool because data is RO (don't need domains, etc.)
                                 ro_feature = arcpy.CopyFeatures_management(
                                     in_features=new_feature.feature,
                                     out_feature_class=os.path.join(ro_sde_db, feature_name)
                                 )[0]
-
+                            
+                            # TODO: Add feature to replica
+                            replicas.add_to_replica(
+                                replica_name=REPLICA_NAME, 
+                                rw_sde=db, 
+                                ro_sde=ro_sde_db, 
+                                add_features= new_feature.feature, 
+                                topology_dataset=TOPOLOGY_DATASET
+                            )
+                            
                             # input("\nAdd feature to existing replica using COMMAND LINE SCRIPT\n")
 
-                            # TODO: Un-version RO feature. Feature is un-versioned when copied over, but adding to replica versions the feature
+                            # TODO: Un-version RO feature. 
+                            #  Feature is un-versioned when copied over, but adding to replica versions the feature
                             print("\tRegistering RO feature as UN-versioned...")
                             arcpy.UnregisterAsVersioned_management(in_dataset=ro_feature)
 
