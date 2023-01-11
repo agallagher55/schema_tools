@@ -57,7 +57,7 @@ if __name__ == "__main__":
         "2": "Food Stand",
         "3": "Artisan Stand"
     }
-    
+
     SUBTYPE_DOMAINS = {
         "field": "VENDLOC",
         "domains": [
@@ -74,7 +74,8 @@ if __name__ == "__main__":
     for dbs in [
         # [local_gdb],
         # connections.dev_connections,
-        [config.get("SERVER", "dev_rw")],
+        # [config.get("SERVER", "dev_rw")],
+        [config.get("SERVER", "qa_rw")],
         # connections.qa_connections,
         # connections.prod_connections
     ]:
@@ -255,28 +256,35 @@ if __name__ == "__main__":
                             ro_exists = arcpy.Exists(ro_sde_db)
 
                             # TODO: Do we need to copy to web_ro.gdb ? Or only if, and when, we need to publish service?
-                            ro_feature = os.path.join(ro_sde_db, new_feature.feature)
+                            ro_feature = os.path.join(ro_sde_db, new_feature.feature_name)
 
                             if not arcpy.Exists(ro_feature):
                                 print("\tCopying RW feature to RO db...")
                                 # We don't need to use Copy tool because data is RO (don't need domains, etc.)
-                                ro_feature = arcpy.CopyFeatures_management(
+                                # ro_feature = arcpy.CopyFeatures_management(
+                                #     in_features=new_feature.feature,
+                                #     out_feature_class=os.path.join(ro_sde_db, feature_name)
+                                # )[0]
+
+                                # TODO: Will need to use table to table if a table...
+                                ro_feature = arcpy.conversion.FeatureClassToFeatureClass(
                                     in_features=new_feature.feature,
-                                    out_feature_class=os.path.join(ro_sde_db, feature_name)
+                                    out_path=ro_sde_db,
+                                    out_name=new_feature.feature_name,
                                 )[0]
-                            
-                            # TODO: Add feature to replica
+
+                            # Add feature to replica
                             replicas.add_to_replica(
-                                replica_name=REPLICA_NAME, 
-                                rw_sde=db, 
-                                ro_sde=ro_sde_db, 
-                                add_features= new_feature.feature, 
+                                replica_name=REPLICA_NAME,
+                                rw_sde=db,
+                                ro_sde=ro_sde_db,
+                                add_features=[new_feature.feature],
                                 topology_dataset=TOPOLOGY_DATASET
                             )
-                            
+
                             # input("\nAdd feature to existing replica using COMMAND LINE SCRIPT\n")
 
-                            # TODO: Un-version RO feature. 
+                            # TODO: Un-version RO feature.
                             print("\tRegistering RO feature as UN-versioned...")
                             arcpy.UnregisterAsVersioned_management(in_dataset=ro_feature)
 
@@ -313,7 +321,7 @@ if __name__ == "__main__":
                                 in_table=new_feature.feature,
                                 fields=id_field,
                                 index_name="unique_id",
-                                unique="UNIQUE",
+                                unique="NON_UNIQUE",
                                 ascending="ASCENDING"
                             )
 
