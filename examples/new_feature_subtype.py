@@ -20,10 +20,11 @@ arcpy.SetLogHistory(False)
 config = ConfigParser()
 config.read('config.ini')
 
+SUBTYPES = True
+TOPOLOGY_DATASET = False
+
 READY_TO_ADD_TO_REPLICA = True
 REPLICA_NAME = "LND_Rosde"
-
-TOPOLOGY_DATASET = False
 
 # SDE = config.get("LOCAL", "prod_rw")
 SDE = config.get("SERVER", "prod_rw")
@@ -98,9 +99,11 @@ if __name__ == "__main__":
                     feature_shape = "Polyline"
 
                 field_data = fields_report.field_details
-                subtype_info = fields_report.subtype_info
-                subtype_field = subtype_info.get("subtype_field")
-                subtype_domains_field = subtype_info.get("subtype_domains_field")
+
+                if SUBTYPES:
+                    subtype_info = fields_report.subtype_info()
+                    subtype_field = subtype_info.get("subtype_field")
+                    subtype_domains_field = subtype_info.get("subtype_domains_field")
 
                 domains_report = DomainsReport(xl_file, subtype_field)
 
