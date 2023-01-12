@@ -188,7 +188,7 @@ if __name__ == "__main__":
                                 field_length = int(field_length)
 
                             if not field_length and field_type == "TEXT":
-                                raise ValueError(f"Field of type {field_type} needs to have a field length.")
+                                raise ValueError(f"Field {field_name} of type {field_type} needs to have a field length.")
 
                             alias = row["Alias"]
                             field_type = row["Field Type"]
