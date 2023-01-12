@@ -251,7 +251,8 @@ if __name__ == "__main__":
                                 # TODO: Will need to use table to table if a table...
                                 ro_feature = arcpy.conversion.FeatureClassToFeatureClass(
                                     in_features=new_feature.feature,
-                                    out_feature_class=os.path.join(ro_sde_db, feature_name)
+                                    out_path=ro_sde_db,
+                                    out_name=new_feature.feature_name,
                                 )[0]
 
                             # Add feature to replica
