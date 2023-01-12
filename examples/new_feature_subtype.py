@@ -193,47 +193,42 @@ if __name__ == "__main__":
 
                     for row_num, row in field_data.iterrows():
 
-                        field_name = row["Field Name"].upper().strip()
-                        field_length = row["Field Length (# of characters)"]
+                        alias = row["Alias"]
+                        field_type = row["Field Type"]
+                        field_len = field_length
+                        nullable = row["Nullable"]
+                        default_value = row["Default Value"]
+                        domain = row["Domain"] or "#"
 
-                        if field_name not in IMMUTABLE_FIELDS:
+                        if field_length:
+                            field_length = int(field_length)
 
-                            if field_length:
-                                field_length = int(field_length)
+                        if not field_length and field_type == "TEXT":
+                            raise ValueError(f"Field {field_name} of type {field_type} needs to have a field length.")
 
-                            if not field_length and field_type == "TEXT":
-                                raise ValueError(f"Field {field_name} of type {field_type} needs to have a field length.")
+                        new_feature.add_field(
+                            field_name=field_name.upper(),
+                            field_type=field_type,
+                            length=field_len,
+                            alias=alias,
+                            nullable=nullable,
+                            domain_name=domain
+                        )
 
-                            alias = row["Alias"]
-                            field_type = row["Field Type"]
-                            field_len = field_length
-                            nullable = row["Nullable"]
-                            default_value = row["Default Value"]
-                            domain = row["Domain"] or "#"
-
-                            new_feature.add_field(
-                                field_name=field_name.upper(),
-                                field_type=field_type,
-                                length=field_len,
-                                alias=alias,
-                                nullable=nullable,
-                                domain_name=domain
+                        if domain and domain != "#":
+                            print(f"\t\t{field_name} has domain: '{domain}'")
+                            new_feature.assign_domain(
+                                field_name=field_name,
+                                domain_name=domain,
+                                subtypes="#"
                             )
 
-                            if domain and domain != "#":
-                                print(f"\t\t{field_name} has domain: '{domain}'")
-                                new_feature.assign_domain(
-                                    field_name=field_name,
-                                    domain_name=domain,
-                                    subtypes="#"
-                                )
-
-                            # Apply default values for fields, if applicable
-                            if default_value:
-                                new_feature.add_field_default(
-                                    field=field_name,
-                                    value=default_value
-                                )
+                        # Apply default values for fields, if applicable
+                        if default_value:
+                            new_feature.add_field_default(
+                                field=field_name,
+                                value=default_value
+                            )
 
                     # ADD GLOBAL IDS
                     new_feature.add_gloablids()
