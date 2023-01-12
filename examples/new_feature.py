@@ -4,10 +4,12 @@ import arcpy
 import connections
 import attribute_rules
 import utils
+import replicas
 
 from configparser import ConfigParser
 
 from domains import transfer_domains, domains_in_db
+from subtypes import create_subtype
 
 from SpatialDataSubmissionForms.features import Feature
 from SpatialDataSubmissionForms.reporter import FieldsReport, DomainsReport
@@ -18,10 +20,14 @@ arcpy.SetLogHistory(False)
 config = ConfigParser()
 config.read('config.ini')
 
-READY_TO_ADD_TO_REPLICA = False
+SUBTYPES = False
+TOPOLOGY_DATASET = False
 
-# SDE = r"C:\Users\gallaga\AppData\Roaming\Esri\ArcGISPro\Favorites\PROD_RW_SDEADM.sde"
-SDE = r"E:\HRM\Scripts\SDE\prod_RW_sdeadm.sde"
+READY_TO_ADD_TO_REPLICA = True
+REPLICA_NAME = ""
+
+# SDE = config.get("LOCAL", "prod_rw")
+SDE = config.get("SERVER", "prod_rw")
 
 SPATIAL_REFERENCE = os.path.join(SDE, "SDEADM.LND_hrm_parcel_parks", "SDEADM.LND_hrm_park")
 
@@ -35,7 +41,7 @@ IMMUTABLE_FIELDS = {
 
 
 if __name__ == "__main__":
-    sdsf = r"T:\work\giss\monthly\202212dec\gallaga\Traffic Calming Assessment\scripts\TCA_DataRequest.xlsx"
+    sdsf = r"T:\work\giss\monthly\202301jan\gallaga\Traffic Calming Assessment\scripts\TCA_DataRequest.xlsx"
     sheet_name = "DATASET DETAILS"
 
     unique_id_fields = {
@@ -45,25 +51,20 @@ if __name__ == "__main__":
         },
 
     }
-    
-    subtype_domain_field = "VENDLOC"
-    SUBTYPE_DOMAINS = {
-        "field": "VENDLOC",
-        "domains": [
-            {"code": 1, "domain": "LND_vendor_location_food_truck"},
-            {"code": 2, "domain": "LND_vendor_location_food_stand"},
-            {"code": 3, "domain": "LND_vendor_location_artisan"}
-        ]
-    }
+
+    SUBTYPE_FIELD = ""
+    SUBTYPE_DOMAINS = {}
 
     CURRENT_DIR = os.getcwd()
 
     local_gdb = utils.create_fgdb(out_folder_path=CURRENT_DIR, out_name="scratch.gdb")
 
     for dbs in [
-        # [local_gdb],
+        [local_gdb],
         # connections.dev_connections,
-        [config.get("SERVER", "dev_rw")],
+        # [config.get("SERVER", "dev_rw")],
+        # [config.get("SERVER", "qa_rw")],
+        # [config.get("SERVER", "prod_rw")],
         # connections.qa_connections,
         # connections.prod_connections
     ]:
@@ -87,26 +88,28 @@ if __name__ == "__main__":
 
                 field_data = fields_report.field_details
 
+                if SUBTYPES:
+                    subtype_info = fields_report.subtype_info()
+                    subtype_field = subtype_info.get("subtype_field")
+                    subtype_domains_field = subtype_info.get("subtype_domains_field")
+
                 domains_report = DomainsReport(xl_file)
-                domains = domains_report.domain_names
 
-                # Append any LONG, additional, pre-existing domains not outlined in the SDSF here.
-                # domains.append("TRN_StreetName")  # Manually add TRN_StreetName domain
-
-                domain_info = domains_report.domain_data
+                domain_data, domain_dataframes = domains_report.domain_info()
+                domain_names = list(domain_data.keys())
 
                 if db_type == "GDB":
 
                     # Transfer existing domains to local dgb and find new domains not in SDE
                     new_domains = transfer_domains(
-                        domains=domains,
+                        domains=domain_names,
                         output_workspace=db,
                         from_workspace=SDE
                     ).get("unfound_domains")
 
                 else:
                     # Check for new domains not found in sde
-                    domains_in_sde, new_domains = domains_in_db(db, domains)
+                    domains_in_sde, new_domains = domains_in_db(db, domain_names)
 
                 # Create any new domains
                 if new_domains:
@@ -115,7 +118,7 @@ if __name__ == "__main__":
                     for domain in new_domains:
                         try:
                             field_type = "TEXT"
-                            
+
                             # Check if domain is a subtype domain
                             if SUBTYPE_DOMAINS:
                                 if domain in [d["domain"] for d in SUBTYPE_DOMAINS["domains"]]:
@@ -123,7 +126,7 @@ if __name__ == "__main__":
                                     print("\t*Subtype Domain Found!")
 
                             print(f"\n\tCreating domain '{domain}'...")
-                            arcpy.arcpy.CreateDomain_management(
+                            arcpy.management.CreateDomain(
                                 in_workspace=db,
                                 domain_name=domain,
                                 field_type=field_type,
@@ -137,12 +140,16 @@ if __name__ == "__main__":
                             print(f"Arcpy Error: {arcpy_msg}")
                             print(f"^^^*(Sometimes this fails in the script, but domain still gets created.)")
 
-                        domain_info = domains_report.domain_data.get(domain)
+                        domain_df = domain_dataframes.get(domain)
 
                         # Populate new domains with codes and values:
-                        # Sort new domains by domain values
-                        # for row in domain_info.itertuples():
-                        for row in sorted([x for x in domain_info.itertuples()], key=lambda x: x.Description):
+                        sort_key = lambda x: x.Description
+
+                        if SUBTYPE_DOMAINS:
+                            if domain in [d["domain"] for d in SUBTYPE_DOMAINS["domains"]]:
+                                sort_key = lambda x: x.Code
+
+                        for row in sorted([x for x in domain_df.itertuples()], key=sort_key):
                             code = row.Code
                             desc = row.Description
 
@@ -157,10 +164,9 @@ if __name__ == "__main__":
                 else:
                     print("\nNO new domains to create.")
 
-                # If workspace is RW and NOT RO, create the feature and add fields
+                # Create the feature and add fields
                 if (db_type == "SDE" and db_rights == "RW") or (db_type == "GDB" and not db_rights):
 
-                    # Create feature (uses feature class to feature class
                     new_feature = Feature(
                         workspace=db,
                         feature_name=feature_name,
@@ -204,7 +210,8 @@ if __name__ == "__main__":
                                 print(f"\t\t{field_name} has domain: '{domain}'")
                                 new_feature.assign_domain(
                                     field_name=field_name,
-                                    domain_name=domain
+                                    domain_name=domain,
+                                    subtypes="#"
                                 )
 
                             # Apply default values for fields, if applicable
@@ -220,7 +227,10 @@ if __name__ == "__main__":
                     # ADD EDITOR TRACKING FIELDS
                     new_feature.add_editor_tracking_fields()
 
-                    # TODO: Copy from RW into RO instead of re-creating feature
+                    # SUBTYPES
+                    if SUBTYPES:
+                        create_subtype(new_feature.feature, SUBTYPE_FIELD, SUBTYPES, SUBTYPE_DOMAINS)
+
                     if db_type == "SDE" and db_rights == "RW":
 
                         if READY_TO_ADD_TO_REPLICA:
@@ -233,23 +243,29 @@ if __name__ == "__main__":
                             ro_exists = arcpy.Exists(ro_sde_db)
 
                             # TODO: Do we need to copy to web_ro.gdb ? Or only if, and when, we need to publish service?
-                            ro_feature = os.path.join(ro_sde_db, new_feature.feature)
+                            ro_feature = os.path.join(ro_sde_db, new_feature.feature_name)
 
                             if not arcpy.Exists(ro_feature):
                                 print("\tCopying RW feature to RO db...")
-                                ro_feature = arcpy.CopyFeatures_management(
+
+                                # TODO: Will need to use table to table if a table...
+                                ro_feature = arcpy.conversion.FeatureClassToFeatureClass(
                                     in_features=new_feature.feature,
                                     out_feature_class=os.path.join(ro_sde_db, feature_name)
                                 )[0]
 
-                            # input("\nAdd feature to existing replica using COMMAND LINE SCRIPT\n")
+                            # Add feature to replica
+                            replicas.add_to_replica(
+                                replica_name=REPLICA_NAME,
+                                rw_sde=db,
+                                ro_sde=ro_sde_db,
+                                add_features=[new_feature.feature],
+                                topology_dataset=TOPOLOGY_DATASET
+                            )
 
-                            # TODO: Un-version RO feature. Feature is un-versioned when copied over, but adding to replica versions the feature
+                            # Un-version RO feature.
                             print("\tRegistering RO feature as UN-versioned...")
                             arcpy.UnregisterAsVersioned_management(in_dataset=ro_feature)
-
-                            # TODO: Do NOT add to RW? Unsure when and how to do this
-                            # TODO: SQL developer: GRANT SELECT ON SDEADM.TREEVAULTASSETID TO ATTRIBUTE_RULES_SEQ_ROLE;
 
                     # Update Privileges
                     new_feature.change_privileges(
@@ -276,13 +292,12 @@ if __name__ == "__main__":
                         )
 
                         print(f"\nAdding attribute index on {id_field}...")
-                        # TODO: only add index AFTER feature has been added to Read-only and add to replica
                         try:
                             arcpy.AddIndex_management(
                                 in_table=new_feature.feature,
                                 fields=id_field,
-                                index_name="unique_id",
-                                unique="UNIQUE",
+                                index_name=f"unique_index{id_field}",
+                                unique="NON_UNIQUE",
                                 ascending="ASCENDING"
                             )
 
