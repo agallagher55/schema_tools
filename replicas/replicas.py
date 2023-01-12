@@ -1,9 +1,18 @@
 import arcpy
 
-REPLICAS = {
-    "TRN_Rosde", "SNF_Rosde", "ROAD_Rosde", "StrDir_Rosde", "MAP_Rosde", "LND_Rosde",
-    "EMO_Rosde", "CIV_Rosde", "BLD_LND_Rosde", "AST_Rosde", "ADM_Rosde"
-}
+REPLICAS = [
+    'ADM_Rosde', 
+    'AST_Rosde', 
+    'BLD_LND_Rosde', 
+    'CIV_Rosde', 
+    'EMO_Rosde', 
+    'LND_Rosde', 
+    'MAP_Rosde', 
+    'ROAD_Rosde', 
+    'SNF_Rosde', 
+    'StrDir_Rosde', 
+    'TRN_Rosde'
+]
 
 
 class Workspace:
