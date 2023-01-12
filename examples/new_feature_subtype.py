@@ -292,7 +292,7 @@ if __name__ == "__main__":
 
                         for field_info in unique_id_fields.get(feature_name):
                             id_field = field_info.get("field")
-                            prefix = field_info.get("field")
+                            prefix = field_info.get("prefix")
 
                             print(f"Creating Sequence and Attribute Rule for {id_field} with prefix {prefix}...")
 
