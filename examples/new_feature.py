@@ -184,19 +184,19 @@ if __name__ == "__main__":
 
                         if field_name not in IMMUTABLE_FIELDS:
 
-                            if field_length:
-                                field_length = int(field_length)
-
-                            if not field_length and field_type == "TEXT":
-                                raise ValueError(f"Field {field_name} of type {field_type} needs to have a field length.")
-
                             alias = row["Alias"]
                             field_type = row["Field Type"]
                             field_len = field_length
                             nullable = row["Nullable"]
                             default_value = row["Default Value"]
                             domain = row["Domain"] or "#"
+                            
+                            if field_length:
+                                field_length = int(field_length)
 
+                            if not field_length and field_type == "TEXT":
+                                raise ValueError(f"Field {field_name} of type {field_type} needs to have a field length.")
+                               
                             new_feature.add_field(
                                 field_name=field_name.upper(),
                                 field_type=field_type,
