@@ -103,14 +103,11 @@ if __name__ == "__main__":
                 subtype_domains_field = subtype_info.get("subtype_domains_field")
 
                 domains_report = DomainsReport(xl_file, subtype_field)
-                # domain_names, domain_dataframes = domains_report.domain_info()
 
                 domain_data, domain_dataframes = domains_report.domain_info()
                 domain_names = list(domain_data.keys())
                 subtype_data = {key: value for key, value in domain_data.items() if domain_data[key].get("subtype_code")}
                 subtype_field = [value.get("subtype_field") for key, value in domain_data.items() if value.get("subtype_field")][0]
-
-                # domain_info = domains_report.domain_data
 
                 if db_type == "GDB":
 
@@ -183,7 +180,7 @@ if __name__ == "__main__":
 
                     new_feature = Feature(
                         workspace=db,
-                        feature_name=feature_name,
+                        feature_name=feature_name + "_test",
                         geometry_type=feature_shape,
                         spatial_reference=SPATIAL_REFERENCE
                     )
@@ -260,11 +257,6 @@ if __name__ == "__main__":
 
                             if not arcpy.Exists(ro_feature):
                                 print("\tCopying RW feature to RO db...")
-                                # We don't need to use Copy tool because data is RO (don't need domains, etc.)
-                                # ro_feature = arcpy.CopyFeatures_management(
-                                #     in_features=new_feature.feature,
-                                #     out_feature_class=os.path.join(ro_sde_db, feature_name)
-                                # )[0]
 
                                 # TODO: Will need to use table to table if a table...
                                 ro_feature = arcpy.conversion.FeatureClassToFeatureClass(
@@ -282,14 +274,9 @@ if __name__ == "__main__":
                                 topology_dataset=TOPOLOGY_DATASET
                             )
 
-                            # input("\nAdd feature to existing replica using COMMAND LINE SCRIPT\n")
-
-                            # TODO: Un-version RO feature.
+                            # Un-version RO feature.
                             print("\tRegistering RO feature as UN-versioned...")
                             arcpy.UnregisterAsVersioned_management(in_dataset=ro_feature)
-
-                            # TODO: Do NOT add to RW? Unsure when and how to do this
-                            # TODO: SQL developer: GRANT SELECT ON SDEADM.TREEVAULTASSETID TO ATTRIBUTE_RULES_SEQ_ROLE;
 
                     # Update Privileges
                     new_feature.change_privileges(
@@ -320,7 +307,7 @@ if __name__ == "__main__":
                             arcpy.AddIndex_management(
                                 in_table=new_feature.feature,
                                 fields=id_field,
-                                index_name="unique_id",
+                                index_name=f"unique_index{id_field}",
                                 unique="NON_UNIQUE",
                                 ascending="ASCENDING"
                             )
@@ -330,5 +317,4 @@ if __name__ == "__main__":
                             print(arcpy_msg)
 
 
-# TODO: Unable to add features to replica (RO)
 # TODO: Add to WGS84 script once in prod. (DC1-GIS-APP-P22)
