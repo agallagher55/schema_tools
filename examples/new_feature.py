@@ -17,6 +17,8 @@ from SpatialDataSubmissionForms.reporter import FieldsReport, DomainsReport
 arcpy.env.overwriteOutput = True
 arcpy.SetLogHistory(False)
 
+MAX_TABLE_NAME_LENGTH = 27
+
 config = ConfigParser()
 config.read('config.ini')
 
@@ -80,7 +82,7 @@ if __name__ == "__main__":
                 print(f"\nCreating feature from {xl_file}...")
                 fields_report = FieldsReport(xl_file)
 
-                feature_name = fields_report.feature_class_name  # Should be all lower case except for the prefix
+                feature_name = fields_report.feature_class_name[:MAX_TABLE_NAME_LENGTH]  # Should be all lower case except for the prefix
                 feature_shape = fields_report.feature_shape
 
                 if feature_shape == "Line":
