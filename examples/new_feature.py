@@ -26,7 +26,7 @@ SUBTYPES = False
 TOPOLOGY_DATASET = False
 
 READY_TO_ADD_TO_REPLICA = True
-REPLICA_NAME = ""
+REPLICA_NAME = 'TRN_Rosde'
 
 # SDE = config.get("LOCAL", "prod_rw")
 SDE = config.get("SERVER", "prod_rw")
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     sheet_name = "DATASET DETAILS"
 
     unique_id_fields = {
-        'TRN_traffic_calming_assessment': {
+        'TRN_traffic_calming_assessm': {
             "field": "TRFSPDID",
             "prefix": "TRFSPD"
         },
@@ -66,7 +66,7 @@ if __name__ == "__main__":
         # connections.dev_connections,
         # [config.get("SERVER", "dev_rw")],
         # [config.get("SERVER", "qa_rw")],
-        # [config.get("SERVER", "prod_rw")],
+        [config.get("SERVER", "prod_rw")],
         # connections.qa_connections,
         # connections.prod_connections
     ]:
@@ -186,19 +186,19 @@ if __name__ == "__main__":
 
                         if field_name not in IMMUTABLE_FIELDS:
 
+                            if field_length:
+                                field_length = int(field_length)
+
+                            if not field_length and not field_type != "TEXT":
+                                raise ValueError(f"Field of type {field_type} needs to have a field length.")
+
                             alias = row["Alias"]
                             field_type = row["Field Type"]
                             field_len = field_length
                             nullable = row["Nullable"]
                             default_value = row["Default Value"]
                             domain = row["Domain"] or "#"
-                            
-                            if field_length:
-                                field_length = int(field_length)
 
-                            if not field_length and field_type == "TEXT":
-                                raise ValueError(f"Field {field_name} of type {field_type} needs to have a field length.")
-                               
                             new_feature.add_field(
                                 field_name=field_name.upper(),
                                 field_type=field_type,
@@ -309,5 +309,4 @@ if __name__ == "__main__":
                             print(arcpy_msg)
 
 
-# TODO: Unable to add features to replica (RO)
 # TODO: Add to WGS84 script once in prod. (DC1-GIS-APP-P22)
