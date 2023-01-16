@@ -52,7 +52,6 @@ def add_code_value(workspace: str, domain_name: str, code: str, value: str):
     print(f"\tSuccessfully added code {code} with value {value} to domain {domain_name}.")
 
 
-
 @arcpy_messages
 def remove_code_value(workspace, domain_name, code):
     # TODO: Check if code exists first
