@@ -34,13 +34,6 @@ def add_code_value(workspace: str, domain_name: str, code: str, value: str):
     :return: None
     """
 
-    existing_codes = [row[0] for row in arcpy.da.ListCodeValues(workspace, domain_name)]
-
-    # Check if code already exists
-    if code in existing_codes:
-        print(f"Code {code} already exists in domain {domain_name}.")
-        return
-
     print(f"\nAdding domain code, value: '{code}' & '{value}' to domain '{domain_name}'...")
 
     arcpy.AddCodedValueToDomain_management(
