@@ -28,7 +28,7 @@ def add_code_value(workspace: str, domain_name: str, code: str, value: str):
     """
     Adds a new code-value pair to an existing domain.
     :param workspace: A string specifying the path to the geodatabase containing the domain.
-    :param domain_name: A string specifying the name of the domain to add the code-value pair to.
+    :param domain_name: The name of the domain to add the code-value pair to.
     :param code: A string specifying the code to add to the domain.
     :param value: A string specifying the value associated with the code.
     :return: None
