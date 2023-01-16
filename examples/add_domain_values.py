@@ -4,45 +4,39 @@ import connections
 import domains
 import utils
 
+from configparser import ConfigParser
+
 from os import getcwd
 
+arcpy.env.overwriteOutput = True
 arcpy.SetLogHistory(False)
+
+config = ConfigParser()
+config.read('config.ini')
 
 CURRENT_DIR = getcwd()
 
-"""
-    LND_outdoor_rec_use
-    Field: REC_USE
-    Domain: LND_rec_activeusearea_type
-    Code/Value: BPK/Bike Park Dirt Jump
-    
-    LND_park_rec_feature
-    Field: MAINRECUSE
-    Domain: LND_rec_bike_use
-    Code/Value: DIRT JUMP/Dirt Jump
-"""
-
 domain_change_info = {
-    "LND_rec_activeusearea_type": {
-        "BPK": "Pump Tracks"
+    "AST_amenity_assetcode": {
+        "DBD": "Dog Bag Dispenser"
     },
-    "LND_rec_bike_use": {
-        "DIRT JUMP": "Pump Tracks"
-    }
 }
 
 if __name__ == "__main__":
-    SCRATCH_GDB = utils.create_fgdb(CURRENT_DIR)
+    local_gdb = utils.create_fgdb(CURRENT_DIR)
 
     domains.transfer_domains(
         list(domain_change_info.keys()),
-        SCRATCH_GDB,
+        local_gdb,
         from_workspace=connections.prod_rw
     )
 
     for dbs in [
-        [SCRATCH_GDB],
+        [local_gdb],
         # connections.dev_connections,
+        # [config.get("SERVER", "dev_rw")],
+        # [config.get("SERVER", "qa_rw")],
+        [config.get("SERVER", "prod_rw")],
         # connections.qa_connections,
         # connections.prod_connections
     ]:
