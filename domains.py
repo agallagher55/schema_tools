@@ -24,17 +24,22 @@ def arcpy_messages(func):
 
 
 @arcpy_messages
-def add_code_value(workspace, domain_name, code, value):
+def add_code_value(workspace: str, domain_name: str, code: str, value: str):
     """
-    - Add domain code, value to domain domain_name
-    :param workspace:
-    :param domain_name:
-    :param code:
-    :param value:
-    :return:
+    Adds a new code-value pair to an existing domain.
+    :param workspace: A string specifying the path to the geodatabase containing the domain.
+    :param domain_name: A string specifying the name of the domain to add the code-value pair to.
+    :param code: A string specifying the code to add to the domain.
+    :param value: A string specifying the value associated with the code.
+    :return: None
     """
 
-    # TODO: Check if code already exists
+    existing_codes = [row[0] for row in arcpy.da.ListCodeValues(workspace, domain_name)]
+
+    # Check if code already exists
+    if code in existing_codes:
+        print(f"Code {code} already exists in domain {domain_name}.")
+        return
 
     print(f"\nAdding domain code, value: '{code}' & '{value}' to domain '{domain_name}'...")
 
@@ -44,6 +49,8 @@ def add_code_value(workspace, domain_name, code, value):
         code=code,
         code_description=value
     )
+    print(f"\tSuccessfully added code {code} with value {value} to domain {domain_name}.")
+
 
 
 @arcpy_messages
