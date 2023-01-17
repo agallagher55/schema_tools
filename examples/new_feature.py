@@ -26,7 +26,7 @@ SUBTYPES = False
 TOPOLOGY_DATASET = False
 
 READY_TO_ADD_TO_REPLICA = True
-REPLICA_NAME = 'TRN_Rosde'
+REPLICA_NAME = 'AST_Rosde'
 
 # SDE = config.get("LOCAL", "prod_rw")
 SDE = config.get("SERVER", "prod_rw")
@@ -43,15 +43,15 @@ IMMUTABLE_FIELDS = {
 
 
 if __name__ == "__main__":
-    sdsf = r"T:\work\giss\monthly\202301jan\gallaga\Traffic Calming Assessment\scripts\TCA_DataRequest.xlsx"
+    sdsf = r"T:\work\giss\monthly\202210oct\gallaga\Pedestrian Ramps\Pedestrian Ramps Tactiles 10May2022.xlsx"
+
     sheet_name = "DATASET DETAILS"
 
     unique_id_fields = {
-        'TRN_traffic_calming_assessm': {
-            "field": "TRFSPDID",
-            "prefix": "TRFSPD"
-        },
-
+        'AST_ped_ramp': [
+            {"field": "PEDRMPID", "prefix": "PEDRMP"},
+            {"field": "ASSETID", "prefix": "PEDRMP"}
+        ]
     }
 
     SUBTYPE_FIELD = ""
@@ -66,10 +66,11 @@ if __name__ == "__main__":
         # connections.dev_connections,
         # [config.get("SERVER", "dev_rw")],
         # [config.get("SERVER", "qa_rw")],
-        [config.get("SERVER", "prod_rw")],
+        # [config.get("SERVER", "prod_rw")],
         # connections.qa_connections,
         # connections.prod_connections
     ]:
+
         for count, db in enumerate(dbs, start=1):
             print(f"\n{count}/{len(dbs)}) Database: {db}")
 
@@ -82,7 +83,7 @@ if __name__ == "__main__":
                 print(f"\nCreating feature from {xl_file}...")
                 fields_report = FieldsReport(xl_file)
 
-                feature_name = fields_report.feature_class_name[:MAX_TABLE_NAME_LENGTH]  # Should be all lower case except for the prefix
+                feature_name = fields_report.feature_class_name  # Should be all lower case except for the prefix
                 feature_shape = fields_report.feature_shape
 
                 if feature_shape == "Line":
@@ -185,20 +186,18 @@ if __name__ == "__main__":
                         field_length = row["Field Length (# of characters)"]
 
                         if field_name not in IMMUTABLE_FIELDS:
-
-                            if field_length:
-                                field_length = int(field_length)
-
-                            if field_type == "TEXT" and not field_length:
-                                raise ValueError(f"Field {field_name} of type {field_type} needs to have a field length.")
-
-
                             alias = row["Alias"]
                             field_type = row["Field Type"]
                             field_len = field_length
                             nullable = row["Nullable"]
                             default_value = row["Default Value"]
                             domain = row["Domain"] or "#"
+                            
+                            if field_length:
+                                field_length = int(field_length)
+
+                            if field_type == "TEXT" and not field_length:
+                                raise ValueError(f"Field {field_name} of type {field_type} needs to have a field length.")
 
                             new_feature.add_field(
                                 field_name=field_name.upper(),
@@ -310,4 +309,4 @@ if __name__ == "__main__":
                             print(arcpy_msg)
 
 
-# TODO: Add to WGS84 script once in prod. (DC1-GIS-APP-P22)
+# TODO: Add to WGS84 script once in prod. (DC1-GIS-APP-P22), if feature is going into Open Data
