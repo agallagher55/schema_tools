@@ -192,7 +192,7 @@ if __name__ == "__main__":
                             nullable = row["Nullable"]
                             default_value = row["Default Value"]
                             domain = row["Domain"] or "#"
-                            
+
                             if field_length:
                                 field_length = int(field_length)
 
@@ -281,32 +281,34 @@ if __name__ == "__main__":
 
                     # Attribute Rules - Add after feature has been copied to Read-Only. RW and .gdb only
                     if feature_name in unique_id_fields:
+                        id_field_info = unique_id_fields[feature_name]
 
-                        id_field = unique_id_fields.get(feature_name).get("field")
-                        prefix = unique_id_fields.get(feature_name).get("prefix")
+                        for field_info in id_field_info:
+                            id_field = field_info.get("field")
+                            prefix = field_info.get("prefix")
 
-                        print(f"Creating Sequence and Attribute Rule for {id_field} with prefix {prefix}...")
+                            print(f"Creating Sequence and Attribute Rule for {id_field} with prefix {prefix}...")
 
-                        attribute_rules.add_sequence_rule(
-                            workspace=db,
-                            feature_name=new_feature.feature,
-                            field_name=id_field,
-                            sequence_prefix=prefix
-                        )
-
-                        print(f"\nAdding attribute index on {id_field}...")
-                        try:
-                            arcpy.AddIndex_management(
-                                in_table=new_feature.feature,
-                                fields=id_field,
-                                index_name=f"unique_index{id_field}",
-                                unique="NON_UNIQUE",
-                                ascending="ASCENDING"
+                            attribute_rules.add_sequence_rule(
+                                workspace=db,
+                                feature_name=new_feature.feature,
+                                field_name=id_field,
+                                sequence_prefix=prefix
                             )
 
-                        except arcpy.ExecuteError:
-                            arcpy_msg = arcpy.GetMessages(2)
-                            print(arcpy_msg)
+                            print(f"\nAdding attribute index on {id_field}...")
+                            try:
+                                arcpy.AddIndex_management(
+                                    in_table=new_feature.feature,
+                                    fields=id_field,
+                                    index_name=f"unique_index{id_field}",
+                                    unique="NON_UNIQUE",
+                                    ascending="ASCENDING"
+                                )
+
+                            except arcpy.ExecuteError:
+                                arcpy_msg = arcpy.GetMessages(2)
+                                print(arcpy_msg)
 
 
-# TODO: Add to WGS84 script once in prod. (DC1-GIS-APP-P22), if feature is going into Open Data
+# TODO: Add to WGS84 script once in prod. (DC1-GIS-APP-P22)
