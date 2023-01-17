@@ -1,16 +1,16 @@
 import arcpy
 
 REPLICAS = [
-    'ADM_Rosde', 
-    'AST_Rosde', 
-    'BLD_LND_Rosde', 
-    'CIV_Rosde', 
-    'EMO_Rosde', 
-    'LND_Rosde', 
-    'MAP_Rosde', 
-    'ROAD_Rosde', 
-    'SNF_Rosde', 
-    'StrDir_Rosde', 
+    'ADM_Rosde',
+    'AST_Rosde',
+    'BLD_LND_Rosde',
+    'CIV_Rosde',
+    'EMO_Rosde',
+    'LND_Rosde',
+    'MAP_Rosde',
+    'ROAD_Rosde',
+    'SNF_Rosde',
+    'StrDir_Rosde',
     'TRN_Rosde'
 ]
 
@@ -38,7 +38,7 @@ class Replica:
         self.name = name
         self.workspace = workspace
 
-        self.replica = [x for x in arcpy.da.ListReplicas(workspace)][0]
+        self.replica = [x for x in arcpy.da.ListReplicas(dev_ro) if x.name == f"SDEADM.{self.name}"][0]
         self.datasets = self.datasets()
 
     def datasets(self):
@@ -181,7 +181,27 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
             get_related_data="GET_RELATED",
             geometry_features=None,
             archiving="DO_NOT_USE_ARCHIVING",
-            register_existing_data="REGISTER_EXISTING_DATA",  # Specifies whether existing data in the child geodatabase will be used to define the replica datasets. The datasets in the child geodatabase must have the same names as the datasets in the parent geodatabase.
+            # register_existing_data="REGISTER_EXISTING_DATA",  # Specifies whether existing data in the child geodatabase will be used to define the replica datasets. The datasets in the child geodatabase must have the same names as the datasets in the parent geodatabase.
             out_type="GEODATABASE",
             out_xml=None
         )
+
+
+if __name__ == "__main__":
+    dev_rw = r"E:\HRM\Scripts\SDE\dev_RW_sdeadm.sde"
+    dev_ro = r"E:\HRM\Scripts\SDE\dev_RO_sdeadm.sde"
+
+    my_replica = Replica("AST_Rosde", dev_ro)
+
+    replica_file = "replicas/ast_rosde.txt"
+    with open(replica_file, "r") as txtfile:
+        replica_features = [x.strip("\n") for x in txtfile.readlines()]
+
+    new_features = [x for x in my_replica.datasets if x not in replica_features]
+    add_to_replica(
+        replica_name='AST_Rosde',
+        rw_sde=dev_rw,
+        ro_sde=dev_ro,
+        add_features=replica_features,
+        topology_dataset=False
+    )
