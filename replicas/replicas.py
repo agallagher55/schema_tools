@@ -181,7 +181,7 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
             get_related_data="GET_RELATED",
             geometry_features=None,
             archiving="DO_NOT_USE_ARCHIVING",
-            # register_existing_data="REGISTER_EXISTING_DATA",  # Specifies whether existing data in the child geodatabase will be used to define the replica datasets. The datasets in the child geodatabase must have the same names as the datasets in the parent geodatabase.
+            register_existing_data="REGISTER_EXISTING_DATA",  # Specifies whether existing data in the child geodatabase will be used to define the replica datasets. The datasets in the child geodatabase must have the same names as the datasets in the parent geodatabase.
             out_type="GEODATABASE",
             out_xml=None
         )
