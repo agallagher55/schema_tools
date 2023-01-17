@@ -189,7 +189,7 @@ if __name__ == "__main__":
                             if field_length:
                                 field_length = int(field_length)
 
-                            if not field_length and not field_type != "TEXT":
+                            if field_type == "TEXT" and not field_length:
                                 raise ValueError(f"Field {field_name} of type {field_type} needs to have a field length.")
 
 
