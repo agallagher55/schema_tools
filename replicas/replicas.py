@@ -125,7 +125,7 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
 
         # Check to see if feature exists in rw workspace
 
-        print(f"Checking to make sure feature exists in {ro_sde}...")
+        print(f"Checking to make sure feature exists in {rw_sde}...")
         invalid_rw_features = [x for x in add_features if not arcpy.Exists(x)]
 
         if invalid_rw_features:
