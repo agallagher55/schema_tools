@@ -53,21 +53,21 @@ def create_fgdb(out_folder_path: str, out_name: str="scratch.gdb") -> str:
     return fgdb
 
 
-def setupLog(fileName, log_to_console: bool=False):
+def setupLog(log_file, log_to_console: bool = False):
     formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s: %(message)s', datefmt='%m-%d-%Y %H:%M:%S')
 
-    handler = logging.FileHandler(fileName)
+    handler = logging.FileHandler(log_file)
     handler.setFormatter(formatter)
     handler.setLevel(logging.INFO)
 
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
     logger.addHandler(handler)
-    
+
     if log_to_console:
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(formatter)
-        logger.addHandler(console_handler)  # print logs to console
+        logger.addHandler(console_handler)
 
     return logger
 
