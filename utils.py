@@ -31,7 +31,7 @@ def arcpy_messages(func):
     return wrapper
 
 
-def create_fgdb(out_folder_path: str, out_name: str="scratch.gdb") -> str:
+def create_fgdb(out_folder_path: str = os.getcwd(), out_name: str = "scratch.gdb") -> str:
     """
     Creates a file geodatabase (fgdb) in the specified output folder.
 
