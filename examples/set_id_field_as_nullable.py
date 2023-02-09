@@ -74,9 +74,9 @@ if __name__ == "__main__":
     LOCAL_GDB = create_fgdb()
 
     for db in [
-        dev_rw,
-        # qa_rw, 
-        # prod_rw
+        # dev_rw,
+        # qa_rw,
+        prod_rw
     ]:
 
         with arcpy.EnvManager(workspace=db):
@@ -87,12 +87,6 @@ if __name__ == "__main__":
             attribute_rules = [x.name for x in arcpy.Describe(FEATURE).attributeRules]
 
             print(f"Initial row count: {initial_feature_row_count}")
-
-            # arcpy.ReconcileVersions_management()
-            print("Unregistering as versioned...")  # Often (always?) have to do this manually
-            arcpy.UnregisterAsVersioned_management(
-                in_dataset=FEATURE, keep_edit="KEEP_EDIT", compress_default="COMPRESS_DEFAULT"
-            )
 
             if initial_feature_row_count > 0:
 
@@ -137,6 +131,12 @@ if __name__ == "__main__":
 
                 print(f"Deleting Attribute Rules: {', '.join(attribute_rules)}...")
                 arcpy.DeleteAttributeRule_management(FEATURE, attribute_rules)
+
+            # arcpy.ReconcileVersions_management()
+            print("Unregistering as versioned...")  # Often (always?) have to do this manually
+            arcpy.UnregisterAsVersioned_management(
+                in_dataset=FEATURE, keep_edit="KEEP_EDIT", compress_default="COMPRESS_DEFAULT"
+            )
 
             # Make fields nullable
             for field in NULLABLE_FIELDS:
