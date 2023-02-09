@@ -68,7 +68,6 @@ def openURL(url, params=None, protocol=None, base_url=None):
 
     except Exception as e:
         print(e)
-        logger.error(e)
 
 
 def createToken(base_url, username, password):
@@ -115,15 +114,16 @@ if __name__ == "__main__":
     # PROD needs to be run on DC1-GIS-APP-P22 or DCQ-GIS-APP-P23
 
     services = [
-        "EditingApps/BuildingData_FireInspections.MapServer",
+        # "EditingApps/BuildingData_FireInspections.MapServer",
 
-        "HRM/ReGIS_EMO.MapServer",
+        # "HRM/ReGIS_EMO.MapServer",
 
         "DDE/dde_map.MapServer",
 
         "CityWorks/Cityworks_Assets.MapServer",
         "CityWorks/Cityworks_Map.MapServer",
 
+        "HRMRegistry/RoadOperation_Subset",
         # "HRMRegistry/ParkingServices.MapServer",
         # "HRMRegistry/HRMBaseData.MapServer",
 
@@ -141,8 +141,9 @@ if __name__ == "__main__":
         token = createToken(base_url, USERNAME, pw)
 
         # for update in "STOP", "START":
-        for update in "START", :
-            print("\nUpdating {} server services...".format(env))
+        # for update in "START", :
+        for update in "STOP", :
+                print("\nUpdating {} server services...".format(env))
 
             try:
                 for service in services:
