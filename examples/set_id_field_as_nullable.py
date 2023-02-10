@@ -3,6 +3,7 @@ To alter a field to be NULLABLE:
 - Field cannot have an attribute rule
 - If the table is not empty, the feature must not be versioned
 """
+
 import arcpy
 import os
 
@@ -90,7 +91,7 @@ if __name__ == "__main__":
 
             if initial_feature_row_count > 0:
 
-                print("Backing up feature")
+                print("Backing up feature...")
                 backup_feature = arcpy.FeatureClassToFeatureClass_conversion(
                     in_features=FEATURE,
                     out_path=LOCAL_GDB,
@@ -102,26 +103,26 @@ if __name__ == "__main__":
                 # Reset sequences for both ID fields
                 reset_sequences(db, NULLABLE_FIELDS)
 
-                # print("Truncating table...")
-                # try:
-                #     arcpy.TruncateTable_management(FEATURE)
-                #
-                # except arcpy.ExecuteError:
-                #     print(arcpy.GetMessages(2))
-                #     edit = arcpy.da.Editor(db)
-                #     edit.startEditing(True, True)
-                #     edit.startOperation()
-                #
-                #     with arcpy.da.UpdateCursor(FEATURE, "*") as cursor:
-                #         for row in cursor:
-                #             cursor.deleteRow(row)
-                #             print("\tRow deleted.")
-                #
-                #     edit.startOperation()
-                #     edit.stopEditing(True)
-                #
-                #     arcpy.ClearWorkspaceCache_management()
-                #     del edit
+                print("Truncating table...")
+                try:
+                    arcpy.TruncateTable_management(FEATURE)
+
+                except arcpy.ExecuteError:
+                    print(arcpy.GetMessages(2))
+                    edit = arcpy.da.Editor(db)
+                    edit.startEditing(True, True)
+                    edit.startOperation()
+
+                    with arcpy.da.UpdateCursor(FEATURE, "*") as cursor:
+                        for row in cursor:
+                            cursor.deleteRow(row)
+                            print("\tRow deleted.")
+
+                    edit.startOperation()
+                    edit.stopEditing(True)
+
+                    arcpy.ClearWorkspaceCache_management()
+                    del edit
 
             if len(attribute_rules) > 0:
                 attribute_rule_export = arcpy.ExportAttributeRules_management(
@@ -165,8 +166,22 @@ if __name__ == "__main__":
                 )
 
             if initial_feature_row_count > 0:
+                print("Disabling Editor Tracking...")
+                arcpy.DisableEditorTracking_management(in_dataset=FEATURE)
+
                 print("Appending data back in...")
                 arcpy.Append_management(
                     inputs=backup_feature,
                     target=FEATURE,
                 )
+
+                print("Re-enabling Editor Tracking...")
+                arcpy.EnableEditorTracking_management(
+                        in_dataset=FEATURE,
+                        creator_field="ADDBY",
+                        creation_date_field="ADDDATE",
+                        last_editor_field="MODBY",
+                        last_edit_date_field="MODDATE",
+                        add_fields="NO_ADD_FIELDS",  # NO_ADD_FIELDS, ADD_FIELDS
+                        record_dates_in="DATABASE_TIME"  # UTC, DATABASE_TIME
+                    )
