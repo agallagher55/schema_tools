@@ -115,7 +115,7 @@ if __name__ == "__main__":
 
                     with arcpy.da.UpdateCursor(FEATURE, "*") as cursor:
                         for row in cursor:
-                            cursor.deleteRow(row)
+                            cursor.deleteRow()
                             print("\tRow deleted.")
 
                     edit.startOperation()
@@ -165,23 +165,23 @@ if __name__ == "__main__":
                     csv_file=attribute_rule_export
                 )
 
-            if initial_feature_row_count > 0:
-                print("Disabling Editor Tracking...")
-                arcpy.DisableEditorTracking_management(in_dataset=FEATURE)
+            # if initial_feature_row_count > 0:
+            print("Disabling Editor Tracking...")
+            arcpy.DisableEditorTracking_management(in_dataset=FEATURE)
 
-                print("Appending data back in...")
-                arcpy.Append_management(
-                    inputs=backup_feature,
-                    target=FEATURE,
+            print("Appending data back in...")
+            arcpy.Append_management(
+                inputs=backup_feature,
+                target=FEATURE,
+            )
+
+            print("Re-enabling Editor Tracking...")
+            arcpy.EnableEditorTracking_management(
+                    in_dataset=FEATURE,
+                    creator_field="ADDBY",
+                    creation_date_field="ADDDATE",
+                    last_editor_field="MODBY",
+                    last_edit_date_field="MODDATE",
+                    add_fields="NO_ADD_FIELDS",  # NO_ADD_FIELDS, ADD_FIELDS
+                    record_dates_in="DATABASE_TIME"  # UTC, DATABASE_TIME
                 )
-
-                print("Re-enabling Editor Tracking...")
-                arcpy.EnableEditorTracking_management(
-                        in_dataset=FEATURE,
-                        creator_field="ADDBY",
-                        creation_date_field="ADDDATE",
-                        last_editor_field="MODBY",
-                        last_edit_date_field="MODDATE",
-                        add_fields="NO_ADD_FIELDS",  # NO_ADD_FIELDS, ADD_FIELDS
-                        record_dates_in="DATABASE_TIME"  # UTC, DATABASE_TIME
-                    )
