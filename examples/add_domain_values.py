@@ -17,8 +17,16 @@ config.read('config.ini')
 CURRENT_DIR = getcwd()
 
 domain_change_info = {
-    "AST_structure_assetcode": {
-        "ADSIGN": "Advertising Sign Structure"
+    "AST_tree_dbh": {
+        1: "0 to 7 cm",
+        2: "7 to 15 cm",
+        3: "15 to 30 cm",
+        4: "30 to 45 cm",
+        5: "45 to 60 cm",
+        6: "60 to 76 cm",
+        7: "76 to 90 cm",
+        8: "90 to 106 cm",
+        9: ">106 cm"
     },
 }
 
@@ -26,12 +34,10 @@ if __name__ == "__main__":
     local_gdb = utils.create_fgdb(CURRENT_DIR)
 
     for dbs in [
-        # [local_gdb],
-        [config.get("SERVER", "dev_rw"), config.get("SERVER", "dev_ro"), config.get("SERVER", "dev_web_ro_gdb")],
+        [local_gdb],
+        # [config.get("SERVER", "dev_rw"), config.get("SERVER", "dev_ro"), config.get("SERVER", "dev_web_ro_gdb")],
         # [config.get("SERVER", "qa_rw")],
         # [config.get("SERVER", "prod_rw")],
-        # connections.qa_connections,
-        # connections.prod_connections
     ]:
 
         print(f"\nProcessing dbs: {', '.join(dbs)}...")
@@ -40,11 +46,13 @@ if __name__ == "__main__":
             print(f"\nDATABASE: {db}")
 
             if db == local_gdb:
+
                 # Check for domains in local workspace
                 domain_present, unfound_domains = domains.domains_in_db(local_gdb, list(domain_change_info.keys()))
+
                 if unfound_domains:
                     PC_NAME = environ['COMPUTERNAME']
-                    prod_sde = config.get("SERVER", "prod_rw") if "APP" in PC_NAME else config.get("SERVER", "prod_rw")
+                    prod_sde = config.get("SERVER", "prod_rw") if "APP" in PC_NAME else config.get("LOCAL", "prod_rw")
 
                     domains.transfer_domains(
                         list(domain_change_info.keys()),
