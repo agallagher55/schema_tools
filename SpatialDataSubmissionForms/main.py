@@ -254,7 +254,9 @@ if __name__ == "__main__":
                             # b) ModifyReplica.exe -w C:\Workspace\Release\10_4\sdeadm_PROD_GIS_HRM_RW_Win.sde -r SDEADM.LND_Rosde -d SDEADM.LND_charge_areas
 
                             # input("\nAdd feature to existing replica using COMMAND LINE SCRIPT\n")
-
+                            
+                            # TODO: Remove any attribute rules from RO feature
+                            
                             # TODO: Un-version RO feature. Feature is un-versioned when copied over, but adding to replica versions the feature
                             print("\tRegistering RO feature as UN-versioned...")
                             arcpy.UnregisterAsVersioned_management(in_dataset=ro_feature)
