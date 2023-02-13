@@ -38,31 +38,39 @@ def create_fgdb(out_folder_path: str = os.getcwd(), out_name: str = "scratch.gdb
     return fgdb
 
 
-def reset_sequences(workspace, sequence_fields):
-    for sequence_field in sequence_fields:
+def reset_sequences(workspace, sequences):
+    print(f"Resetting sequences {', '.join(sequences)}...")
+
+    # TODO: Check if field participates in an attribute rule, if so, reset the sequence for that attribute rule
+
+    for sequence in sequences:
 
         try:
-            arcpy.DeleteDatabaseSequence_management(in_workspace=db, seq_name=sequence_field)
+            arcpy.DeleteDatabaseSequence_management(in_workspace=db, seq_name=sequence)
+
+            print(f"\tCreating db sequence {sequence}...")
+            arcpy.CreateDatabaseSequence_management(
+                in_workspace=workspace,
+                seq_name=sequence,
+                seq_start_id=1,
+                seq_inc_value=1
+            )
 
         except arcpy.ExecuteError:
             print(arcpy.GetMessages(2))
 
-        print(f"\tCreating db sequence {sequence_field}...")
-        arcpy.CreateDatabaseSequence_management(
-            in_workspace=workspace,
-            seq_name=sequence_field,
-            seq_start_id=1,
-            seq_inc_value=1
-        )
+    return True
 
 
 if __name__ == "__main__":
+    # TODO: Update PEDRAMP ASSETID attribute rule to use PEDRMPASSETID
+
     FEATURE = "SDEADM.AST_PED_RAMP"
     # FEATURE = "SDEADM.LND_Charge_Areas"
     # FEATURE = "SDEADM.LND_beach_mobility"
 
     # NULLABLE_FIELDS = ["PEDRMPID", "ASSETID"]
-    NULLABLE_FIELDS = ["ASSETCODE", "OWNER", "LOCGEN"]
+    NULLABLE_FIELDS = ["PEDRMPID", "ASSETID", "ASSETCODE", "OWNER", "LOCGEN"]
     # NULLABLE_FIELDS = ["CHGAREA_ID"]
     # NULLABLE_FIELDS = ["MOBILITYID"]
 
@@ -75,20 +83,16 @@ if __name__ == "__main__":
     LOCAL_GDB = create_fgdb()
 
     for db in [
-        dev_rw,
+        # dev_rw,
         # qa_rw,
-        # prod_rw
+        prod_rw
     ]:
-
-        BACKUP_FEATURE = False  # If the table is not empty, the feature must not be versioned
-        RESET_SEQUENCE = False
 
         with arcpy.EnvManager(workspace=db):
             print(f"\nSDE: {db}")
 
             feature_name = os.path.basename(FEATURE).replace("SDEADM.", "")
             initial_feature_row_count = int(arcpy.GetCount_management(FEATURE)[0])
-            attribute_rules = [x.name for x in arcpy.Describe(FEATURE).attributeRules]
 
             backup_feature = os.path.join(LOCAL_GDB, feature_name)
 
@@ -106,7 +110,8 @@ if __name__ == "__main__":
                 # STOP associated services
 
                 # Reset sequences for both ID fields
-                reset_sequences(db, NULLABLE_FIELDS)
+                # TODO: Only use fields that partake in an attribute rule
+                # TODO: Will only be reached if attribute rules haven't already been deleted...
 
                 print("Truncating table...")
                 try:
@@ -123,7 +128,6 @@ if __name__ == "__main__":
                     with arcpy.da.UpdateCursor(FEATURE, "*") as cursor:
                         for row in cursor:
                             cursor.deleteRow()
-                            print("\tRow deleted.")
 
                     edit.startOperation()
                     edit.stopEditing(True)
@@ -131,18 +135,35 @@ if __name__ == "__main__":
                     arcpy.ClearWorkspaceCache_management()
                     del edit
 
-            if len(attribute_rules) > 0:
+            attribute_rules = arcpy.Describe(FEATURE).attributeRules
+            at_rule_fields = [x.fieldName for x in attribute_rules]
+            at_rule_sequences = []
+
+            for rule in attribute_rules:
+                if "Generate ID" in rule.description:
+                    sequence = rule.scriptExpression.split("NextSequenceValue")[1].split(".")[1].strip(")'")
+                    at_rule_sequences.append(sequence)
+
+            # reset_sequences(db, NULLABLE_FIELDS)
+            if at_rule_sequences:
+                reset_sequences(db, at_rule_sequences)
+
+            if len(attribute_rules) > 0:  # TODO: check to see if nullable field participates in an attribute rule
                 attribute_rule_export = arcpy.ExportAttributeRules_management(
                     in_table=FEATURE,
                     out_csv_file=f"../attribute_rules/{os.path.basename(FEATURE)}_attributeRules.csv"
                 )[0]
 
-                print(f"Deleting Attribute Rules: {', '.join(attribute_rules)}...")
-                arcpy.DeleteAttributeRule_management(FEATURE, attribute_rules)
+                rule_names = [x.name for x in attribute_rules]
+                print(f"Deleting Attribute Rules:")
+                for rule in rule_names:
+                    print(f"\t{rule}")
+
+                arcpy.DeleteAttributeRule_management(FEATURE, rule_names)
 
             # arcpy.ReconcileVersions_management()
             print("Unregistering as versioned...")  # Often (always?) have to do this manually
-            input("Unregister as versioned and then press any key to continue.")
+            input("Unregister as versioned and then restart script to continue.")
             arcpy.UnregisterAsVersioned_management(
                 in_dataset=FEATURE, keep_edit="KEEP_EDIT", compress_default="COMPRESS_DEFAULT"
             )
@@ -166,12 +187,11 @@ if __name__ == "__main__":
             arcpy.RegisterAsVersioned_management(in_dataset=FEATURE)
 
             # Add attribute rules back in. There should always be attribute rules for these sequences
-            if len(attribute_rules) > 0:
-                print("Re-applying attribute rules...")
-                arcpy.ImportAttributeRules_management(
-                    target_table=FEATURE,
-                    csv_file=attribute_rule_export
-                )
+            print("Re-applying attribute rules...")
+            arcpy.ImportAttributeRules_management(
+                target_table=FEATURE,
+                csv_file=attribute_rule_export
+            )
 
             print("Disabling Editor Tracking...")
             arcpy.DisableEditorTracking_management(in_dataset=FEATURE)
@@ -190,5 +210,5 @@ if __name__ == "__main__":
                     last_editor_field="MODBY",
                     last_edit_date_field="MODDATE",
                     add_fields="NO_ADD_FIELDS",  # NO_ADD_FIELDS, ADD_FIELDS
-                    record_dates_in="DATABASE_TIME"  # UTC, DATABASE_TIME
+                    record_dates_in="UTC"  # UTC, DATABASE_TIME
                 )
