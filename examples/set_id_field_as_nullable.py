@@ -71,7 +71,7 @@ if __name__ == "__main__":
     dev_rw = r"E:\HRM\Scripts\SDE\dev_RW_sdeadm.sde"
     qa_rw = r"E:\HRM\Scripts\SDE\qa_RW_sdeadm.sde"
     prod_rw = r"E:\HRM\Scripts\SDE\prod_RW_sdeadm.sde"
-    
+
     LOCAL_GDB = create_fgdb()
 
     for db in [
@@ -79,16 +79,18 @@ if __name__ == "__main__":
         # qa_rw,
         # prod_rw
     ]:
-        
+
         BACKUP_FEATURE = False  # If the table is not empty, the feature must not be versioned
         RESET_SEQUENCE = False
-        
+
         with arcpy.EnvManager(workspace=db):
             print(f"\nSDE: {db}")
 
             feature_name = os.path.basename(FEATURE).replace("SDEADM.", "")
             initial_feature_row_count = int(arcpy.GetCount_management(FEATURE)[0])
             attribute_rules = [x.name for x in arcpy.Describe(FEATURE).attributeRules]
+
+            backup_feature = os.path.join(LOCAL_GDB, feature_name)
 
             print(f"Initial row count: {initial_feature_row_count}")
 
@@ -112,6 +114,8 @@ if __name__ == "__main__":
 
                 except arcpy.ExecuteError:
                     print(arcpy.GetMessages(2))
+
+                    print("\tTruncating table with update cursor...")
                     edit = arcpy.da.Editor(db)
                     edit.startEditing(True, True)
                     edit.startOperation()
@@ -138,6 +142,7 @@ if __name__ == "__main__":
 
             # arcpy.ReconcileVersions_management()
             print("Unregistering as versioned...")  # Often (always?) have to do this manually
+            input("Unregister as versioned and then press any key to continue.")
             arcpy.UnregisterAsVersioned_management(
                 in_dataset=FEATURE, keep_edit="KEEP_EDIT", compress_default="COMPRESS_DEFAULT"
             )
@@ -168,7 +173,6 @@ if __name__ == "__main__":
                     csv_file=attribute_rule_export
                 )
 
-            # if initial_feature_row_count > 0:
             print("Disabling Editor Tracking...")
             arcpy.DisableEditorTracking_management(in_dataset=FEATURE)
 
