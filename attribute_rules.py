@@ -68,6 +68,9 @@ def add_sequence_rule(workspace, feature_name, field_name, sequence_prefix=""):
 
     rule_description = f"{os.path.basename(feature_name)} - {field_name} - Generate ID"
     expression = f"'{sequence_prefix}' + NextSequenceValue('sdeadm.{field_name}')"  # for SDE features
+    
+    if field_name in ("ASSETID", "ASSET_ID"):
+        raise ValueError(f"Sequence for {field_name} needs a different sequence name.")
 
     in_feature = os.path.join(workspace, feature_name)
 
@@ -89,7 +92,7 @@ def add_sequence_rule(workspace, feature_name, field_name, sequence_prefix=""):
             in_workspace=workspace,
             seq_name=field_name
         )
-        
+
     except arcpy.ExecuteError:
         print(arcpy.GetMessages(2))
 
