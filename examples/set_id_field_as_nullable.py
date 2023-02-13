@@ -1,7 +1,7 @@
 """
 To alter a field to be NULLABLE:
-- Field cannot have an attribute rule
-- If the table is not empty, the feature must not be versioned
+    - Field cannot have an attribute rule
+    - If the table is not empty, the feature must not be versioned
 """
 
 import arcpy
@@ -9,20 +9,6 @@ import os
 
 arcpy.env.overwriteOutput = True
 arcpy.SetLogHistory(False)
-
-# FEATURE = "SDEADM.AST_PED_RAMP"
-# FEATURE = "SDEADM.LND_Charge_Areas"
-FEATURE = "SDEADM.LND_beach_mobility"
-
-# NULLABLE_FIELDS = ["PEDRMPID", "ASSETID"]
-# NULLABLE_FIELDS = ["CHGAREA_ID"]
-NULLABLE_FIELDS = ["MOBILITYID"]
-
-# LND_Charge_Areas (CHGAREA_ID), LND_beach_mobility (MOBILITYID), LND_subdiv_applications (fix field aliases as well), LND_special_planning_areas
-
-dev_rw = r"E:\HRM\Scripts\SDE\dev_RW_sdeadm.sde"
-qa_rw = r"E:\HRM\Scripts\SDE\qa_RW_sdeadm.sde"
-prod_rw = r"E:\HRM\Scripts\SDE\prod_RW_sdeadm.sde"
 
 """
 You edit the sequence and update the Starting value. 
@@ -71,15 +57,32 @@ def reset_sequences(workspace, sequence_fields):
 
 
 if __name__ == "__main__":
+    FEATURE = "SDEADM.AST_PED_RAMP"
+    # FEATURE = "SDEADM.LND_Charge_Areas"
+    # FEATURE = "SDEADM.LND_beach_mobility"
 
+    # NULLABLE_FIELDS = ["PEDRMPID", "ASSETID"]
+    NULLABLE_FIELDS = ["ASSETCODE", "OWNER", "LOCGEN"]
+    # NULLABLE_FIELDS = ["CHGAREA_ID"]
+    # NULLABLE_FIELDS = ["MOBILITYID"]
+
+    # LND_subdiv_applications (fix field aliases as well), LND_special_planning_areas
+
+    dev_rw = r"E:\HRM\Scripts\SDE\dev_RW_sdeadm.sde"
+    qa_rw = r"E:\HRM\Scripts\SDE\qa_RW_sdeadm.sde"
+    prod_rw = r"E:\HRM\Scripts\SDE\prod_RW_sdeadm.sde"
+    
     LOCAL_GDB = create_fgdb()
 
     for db in [
-        # dev_rw,
+        dev_rw,
         # qa_rw,
-        prod_rw
+        # prod_rw
     ]:
-
+        
+        BACKUP_FEATURE = False  # If the table is not empty, the feature must not be versioned
+        RESET_SEQUENCE = False
+        
         with arcpy.EnvManager(workspace=db):
             print(f"\nSDE: {db}")
 
@@ -98,7 +101,7 @@ if __name__ == "__main__":
                     out_name=feature_name,
                 )[0]
 
-                # Stop associated services
+                # STOP associated services
 
                 # Reset sequences for both ID fields
                 reset_sequences(db, NULLABLE_FIELDS)
