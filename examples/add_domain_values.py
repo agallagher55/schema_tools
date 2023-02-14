@@ -17,25 +17,38 @@ config.read('config.ini')
 CURRENT_DIR = getcwd()
 
 domain_change_info = {
-    "AST_tree_dbh": {
-        1: "0 to 7 cm",
-        2: "7 to 15 cm",
-        3: "15 to 30 cm",
-        4: "30 to 45 cm",
-        5: "45 to 60 cm",
-        6: "60 to 76 cm",
-        7: "76 to 90 cm",
-        8: "90 to 106 cm",
-        9: ">106 cm"
+    "AST_tree_sp_scien": {
+        "CAJA": "Carpinus japonica",
+        "CRVI": "Crataegus viridis",
+        "FRQU": "Fraxinus quadrangulata",
+        "MALO": "Magnolia x loebneri",
+        "QUBI": "Quercus bicolor",
+        "QUCO": "Quercis coccinea",
+        "QUMU": "Quercis muehlenbergii",
+        "SAAL": "Sassafras albidium",
+        "SO": "Sorbus species",
+        "ULAC": "Ulmus x morton"
     },
+    "AST_tree_sp_comm": {
+        "CAJA": "Japanese Hornbeam",
+        "CRVI": "Green Hawthorn",
+        "FRQU": "Blue Ash",
+        "MALO": "Loebner Magnolia",
+        "QUBI": "Swamp White Oak",
+        "QUCO": "Scarlet Oak",
+        "QUMU": "Chinquapin oak",
+        "SAAL": "Sassafras",
+        "SO": "Mountain Ash",
+        "ULAC": "Accolade elm",
+    }
 }
 
 if __name__ == "__main__":
     local_gdb = utils.create_fgdb(CURRENT_DIR)
 
     for dbs in [
-        [local_gdb],
-        # [config.get("SERVER", "dev_rw"), config.get("SERVER", "dev_ro"), config.get("SERVER", "dev_web_ro_gdb")],
+        # [local_gdb],
+        [config.get("SERVER", "dev_rw"), config.get("SERVER", "dev_ro"), config.get("SERVER", "dev_web_ro_gdb")],
         # [config.get("SERVER", "qa_rw")],
         # [config.get("SERVER", "prod_rw")],
     ]:
@@ -52,7 +65,7 @@ if __name__ == "__main__":
 
                 if unfound_domains:
                     PC_NAME = environ['COMPUTERNAME']
-                    prod_sde = config.get("SERVER", "prod_rw") if "APP" in PC_NAME else config.get("LOCAL", "prod_rw")
+                    prod_sde = config.get("SERVER", "prod_rw") if "APP" in PC_NAME else config.get("SERVER", "prod_rw")
 
                     domains.transfer_domains(
                         list(domain_change_info.keys()),
@@ -70,8 +83,9 @@ if __name__ == "__main__":
                     raise ValueError(f"Did not find domain '{domain}' in db. Found domains: {', '.join(db_domains)}")
 
                 add_code_values = domain_change_info[domain]
-                for code_value in add_code_values:
+                for count, code_value in enumerate(add_code_values, start=1):
                     new_code = code_value
                     new_value = add_code_values[code_value]
-
+                    
+                    print(f"{count}/{len(add_code_values)})")
                     domains.add_code_value(db, domain, new_code, new_value)
