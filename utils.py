@@ -77,6 +77,3 @@ if __name__ == "__main__":
 
     workspace = create_fgdb(out_folder_path=r"T:\work\giss\monthly\202208aug\gallaga\TRN_Bridge\scripts")
     print(workspace)
-
-    local_bridge = copy_feature(trn_bridge, workspace)
-    print(local_bridge)
