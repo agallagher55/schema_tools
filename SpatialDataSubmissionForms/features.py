@@ -116,14 +116,6 @@ class Feature:
         if field_type == "STRING":
             field_type = "TEXT"
 
-        nullable_mapping = {
-            1.0: "NULLABLE",
-            0.0: "NON_NULLABLE",
-        }
-
-        if nullable in nullable_mapping:
-            nullable = nullable_mapping[nullable]
-
         if field_type not in valid_types:
             print(f"Field Type: {field_type}")
             raise ValueError(f"Field type: '{field_type}' does not appear to be a valid field type!")
