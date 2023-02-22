@@ -135,10 +135,10 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
         print(f"Checking if replica already exists...")
         rw_replicas = [x for x in arcpy.da.ListReplicas(rw_sde)]
 
-        replica_exists = sde_replica_name in [x.name for x in rw_replicas]
-        replica_exists = any(x.name == sde_replica_name for x in arcpy.da.ListReplicas(rw_sde))
+        replica_exists = any(x.name.upper() == sde_replica_name.upper() for x in rw_replicas)
 
         print(f"\tReplica already exists? {replica_exists}")
+        print(f"\tReplicas: {', '.join([x.name for x in rw_replicas])}")
 
         # Check if add_features are versioned
         for feature in add_features:
@@ -149,12 +149,20 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
                 register_as_versioned(feature)
 
         if replica_exists:
+
             # Synchronize replicas to update RO feature(s)
             sync_replicas(replica_name, rw_sde, ro_sde)
 
             # Get list of features ALREADY in the replica
-            rw_replica = [x for x in rw_replicas if x.name == sde_replica_name][0]
+            rw_replica = [x for x in rw_replicas if x.name.upper() == sde_replica_name.upper()][0]
             curr_replica_features = rw_replica.datasets
+
+            # TODO: Write current replicas to txtfile
+            replica_file_name = f"{replica_name}.txt"
+            print(f"\tWriting current replica features to {replica_file_name}")
+            with open(replica_file_name, "w") as txtfile:
+                for feature in sorted(list(set(curr_replica_features))):
+                    txtfile.write(f"{feature}\n")
 
             # Add features already in replica to list of features given to the user
             add_features = sorted(list(set(curr_replica_features + add_features)))
@@ -169,6 +177,11 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
 
         print(f"\nCreating replica: '{sde_replica_name}' with features: {', '.join(add_features)}...'")
 
+        register_existing_data = "REGISTER_EXISTING_DATA"
+
+        if not replica_exists:
+            register_existing_data = "DO_NOT_USE_REGISTER_EXISTING_DATA"
+
         arcpy.CreateReplica_management(
             in_data=add_features,
             in_type="ONE_WAY_REPLICA",
@@ -181,27 +194,40 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
             get_related_data="GET_RELATED",
             geometry_features=None,
             archiving="DO_NOT_USE_ARCHIVING",
-            register_existing_data="REGISTER_EXISTING_DATA",  # Specifies whether existing data in the child geodatabase will be used to define the replica datasets. The datasets in the child geodatabase must have the same names as the datasets in the parent geodatabase.
+            register_existing_data=register_existing_data,  # Specifies whether existing data in the child geodatabase will be used to define the replica datasets. The datasets in the child geodatabase must have the same names as the datasets in the parent geodatabase.
             out_type="GEODATABASE",
             out_xml=None
         )
+
+        # TODO: Write updated replica list to txtfile
+        replica_file_name = f"{replica_name}_updated.txt"
+        print(f"\tWriting current replica features to {replica_file_name}")
+        with open(replica_file_name, "w") as txtfile:
+            for feature in sorted(add_features):
+                txtfile.write(f"{feature}\n")
 
 
 if __name__ == "__main__":
     dev_rw = r"E:\HRM\Scripts\SDE\dev_RW_sdeadm.sde"
     dev_ro = r"E:\HRM\Scripts\SDE\dev_RO_sdeadm.sde"
 
-    my_replica = Replica("AST_Rosde", dev_ro)
+    # my_replica = Replica("AST_Rosde", dev_ro)
 
-    replica_file = "replicas/ast_rosde.txt"
+    replica_file = "replicas/adm_ro.txt"
     with open(replica_file, "r") as txtfile:
         replica_features = [x.strip("\n") for x in txtfile.readlines()]
 
-    new_features = [x for x in my_replica.datasets if x not in replica_features]
+    new_features = [
+        "SDEADM.ADM_maritimes",
+        "SDEADM.ADM_maritimes_250k",
+        "SDEADM.ADM_maritimes_clip"
+    ]
+
+    all_features = replica_features + new_features
     add_to_replica(
-        replica_name='AST_Rosde',
+        replica_name='Adm_Rosde',
         rw_sde=dev_rw,
         ro_sde=dev_ro,
-        add_features=replica_features,
+        add_features=all_features,
         topology_dataset=False
     )
