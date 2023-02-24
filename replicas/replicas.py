@@ -105,6 +105,8 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
     :return:
     """
 
+    add_features = list(set(add_features))
+
     replica_name = replica_name.replace("SDEADM.", "")
     sde_replica_name = f"SDEADM.{replica_name}"
 
@@ -203,16 +205,16 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
         replica_file_name = f"{replica_name}_updated.txt"
         print(f"\tWriting current replica features to {replica_file_name}")
         with open(replica_file_name, "w") as txtfile:
-            for feature in sorted(add_features):
+            for feature in sorted([x.upper() for x in add_features]):
                 txtfile.write(f"{feature}\n")
 
 
 if __name__ == "__main__":
-    # dev_rw = r"E:\HRM\Scripts\SDE\dev_RW_sdeadm.sde"
-    # dev_ro = r"E:\HRM\Scripts\SDE\dev_RO_sdeadm.sde"
+    dev_rw = r"E:\HRM\Scripts\SDE\dev_RW_sdeadm.sde"
+    dev_ro = r"E:\HRM\Scripts\SDE\dev_RO_sdeadm.sde"
 
-    qa_rw = r"E:\HRM\Scripts\SDE\qa_RW_sdeadm.sde"
-    qa_ro = r"E:\HRM\Scripts\SDE\qa_RO_sdeadm.sde"
+    # qa_rw = r"E:\HRM\Scripts\SDE\qa_RW_sdeadm.sde"
+    # qa_ro = r"E:\HRM\Scripts\SDE\qa_RO_sdeadm.sde"
 
     # my_replica = Replica("AST_Rosde", dev_ro)
 
@@ -230,8 +232,8 @@ if __name__ == "__main__":
 
     add_to_replica(
         replica_name='ADM_Rosde',
-        rw_sde=qa_rw,
-        ro_sde=qa_ro,
+        rw_sde=dev_rw,
+        ro_sde=dev_ro,
         add_features=all_features,
         topology_dataset=False
     )
