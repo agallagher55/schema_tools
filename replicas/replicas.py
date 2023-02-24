@@ -205,7 +205,7 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
         replica_file_name = f"{replica_name}_updated.txt"
         print(f"\tWriting current replica features to {replica_file_name}")
         with open(replica_file_name, "w") as txtfile:
-            for feature in sorted([x.upper() for x in add_features]):
+            for feature in sorted(list(set([x.upper() for x in add_features]))):
                 txtfile.write(f"{feature}\n")
 
 
