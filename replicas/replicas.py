@@ -68,9 +68,12 @@ def sync_replicas(replica_name: str, rw_sde: str, ro_sde: str):
 
 
 def register_as_versioned(feature):
-    print(f"\nRegistering {feature} as versioned...")
-    arcpy.RegisterAsVersioned_management(feature)
-    print(arcpy.GetMessages(2))
+    try:
+        print(f"\nRegistering {feature} as versioned...")
+        arcpy.RegisterAsVersioned_management(feature)
+
+    except arcpy.ExecuteError:
+        print(arcpy.GetMessages(2))
 
 
 # TODO: Create helper functions to check if replica exists in a workspace, creating replica
@@ -115,7 +118,7 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
     with arcpy.EnvManager(workspace=ro_sde):
         # Check to see if feature exists in ro workspace
 
-        print(f"Checking to make sure feature exists in {ro_sde}...")
+        print(f"Checking to make sure features exist in {ro_sde}...")
         invalid_ro_features = [x for x in add_features if not arcpy.Exists(x)]
 
         if invalid_ro_features:
@@ -125,7 +128,7 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
 
         # Check to see if feature exists in rw workspace
 
-        print(f"Checking to make sure feature exists in {rw_sde}...")
+        print(f"Checking to make sure features exist in {rw_sde}...")
         invalid_rw_features = [x for x in add_features if not arcpy.Exists(x)]
 
         if invalid_rw_features:
@@ -147,6 +150,8 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
 
             if not versioned:
                 register_as_versioned(feature)
+
+        # TODO: Check to make sure features have GlobalIDs
 
         if replica_exists:
 
@@ -177,29 +182,24 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
 
         print(f"\nCreating replica: '{sde_replica_name}' with features: {', '.join(add_features)}...'")
 
-        register_existing_data = "REGISTER_EXISTING_DATA"
-
-        if not replica_exists:
-            register_existing_data = "DO_NOT_USE_REGISTER_EXISTING_DATA"
-
         arcpy.CreateReplica_management(
             in_data=add_features,
             in_type="ONE_WAY_REPLICA",
             out_geodatabase=ro_sde,
             out_name=replica_name,
-            access_type=access_type,  # FULL: SNF one Full, the rest will be Simple - Complex types (topologies and networks) are supported and the data must be versioned.
+            access_type=access_type,  # FULL: SNF = Full, the rest = Simple; Complex types (topologies and networks) are supported and the data must be versioned.
             initial_data_sender="PARENT_DATA_SENDER",
             expand_feature_classes_and_tables="USE_DEFAULTS",
             reuse_schema="DO_NOT_REUSE",  # This parameter is only available for checkout replicas.
             get_related_data="GET_RELATED",
             geometry_features=None,
             archiving="DO_NOT_USE_ARCHIVING",
-            register_existing_data=register_existing_data,  # Specifies whether existing data in the child geodatabase will be used to define the replica datasets. The datasets in the child geodatabase must have the same names as the datasets in the parent geodatabase.
+            register_existing_data="REGISTER_EXISTING_DATA",  # Specifies whether existing data in the child geodatabase will be used to define the replica datasets. The datasets in the child geodatabase must have the same names as the datasets in the parent geodatabase.
             out_type="GEODATABASE",
             out_xml=None
         )
 
-        # TODO: Write updated replica list to txtfile
+        # Write updated replica list to txtfile
         replica_file_name = f"{replica_name}_updated.txt"
         print(f"\tWriting current replica features to {replica_file_name}")
         with open(replica_file_name, "w") as txtfile:
@@ -208,8 +208,11 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
 
 
 if __name__ == "__main__":
-    dev_rw = r"E:\HRM\Scripts\SDE\dev_RW_sdeadm.sde"
-    dev_ro = r"E:\HRM\Scripts\SDE\dev_RO_sdeadm.sde"
+    # dev_rw = r"E:\HRM\Scripts\SDE\dev_RW_sdeadm.sde"
+    # dev_ro = r"E:\HRM\Scripts\SDE\dev_RO_sdeadm.sde"
+
+    qa_rw = r"E:\HRM\Scripts\SDE\qa_RW_sdeadm.sde"
+    qa_ro = r"E:\HRM\Scripts\SDE\qa_RO_sdeadm.sde"
 
     # my_replica = Replica("AST_Rosde", dev_ro)
 
@@ -224,10 +227,11 @@ if __name__ == "__main__":
     ]
 
     all_features = replica_features + new_features
+
     add_to_replica(
-        replica_name='Adm_Rosde',
-        rw_sde=dev_rw,
-        ro_sde=dev_ro,
+        replica_name='ADM_Rosde',
+        rw_sde=qa_rw,
+        ro_sde=qa_ro,
         add_features=all_features,
         topology_dataset=False
     )
