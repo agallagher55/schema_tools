@@ -17,7 +17,7 @@ config.read('config.ini')
 
 CURRENT_DIR = getcwd()
 
-FEATURE = "SDEADM.LND_OFF_LEASH"
+FEATURE = "SDEADM.LND_OFF_LEASH"  # TODO: this should be renamed so it doesn't clash with import
 
 new_field_info = {
     "PARK_ID": {
