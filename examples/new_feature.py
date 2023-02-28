@@ -302,7 +302,6 @@ if __name__ == "__main__":
                                     in_table=new_feature.feature,
                                     fields=id_field,
                                     index_name=f"unique_index{id_field}",
-                                    unique="NON_UNIQUE",
                                     ascending="ASCENDING"
                                 )
 
