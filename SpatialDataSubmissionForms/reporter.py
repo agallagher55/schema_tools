@@ -51,16 +51,16 @@ class FieldsReport(Report):
         return ()
 
     def field_info(self):
-        new_fields = ("Subtype Field", )
+        new_fields = ("Subtype Field",)
         cols = (
             "Field Name", "Description", "Alias", "Field Type",
             "Field Length (# of characters)", "Nullable", "Default Value", "Domain", "Notes"
         )
-        
+
         # Error Checking
         # Make sure shape length, shape_area fields are included
         if "SHAPE_AREA" not in [x.upper() for x in cols] or "SHAPE_LENGTH" not in [x.upper() for x in cols]:
-            raise IndexError(f"ERROR: SDSF needs to have SHAPE_AREA/LEGNTH fields.")
+            raise IndexError(f"ERROR: SDSF needs to have SHAPE_AREA/LENGTH fields.")
 
         df_field_details = self.df.loc["Field Name":"SHAPE_Length"]
         df_field_details.reset_index(inplace=True)
@@ -73,7 +73,8 @@ class FieldsReport(Report):
         return df_field_details
 
     def domain_fields(self) -> dict:
-        domain_fields = self.field_details[["Field Name", "Domain", "Field Type"]][~self.field_details["Domain"].isnull()]
+        domain_fields = self.field_details[["Field Name", "Domain", "Field Type"]][
+            ~self.field_details["Domain"].isnull()]
 
         domain_fields_info = domain_fields.to_dict("records")
 
@@ -92,8 +93,7 @@ class DomainsReport(Report):
 
     def domain_info(self) -> dict:
         """
-
-        :return:
+        :return: {domain_name, dataframe, subtype_code}
         """
 
         domain_dataframes = dict()
@@ -131,6 +131,7 @@ class DomainsReport(Report):
 
             if next_domain:
                 domain_df = self.domain_df.loc[current_domain_name: next_domain]
+
             else:
                 domain_df = self.domain_df.loc[current_domain_name:]
 
@@ -138,7 +139,9 @@ class DomainsReport(Report):
             domain_df.columns = domain_df.iloc[1]  # Set first column as df header
 
             if next_domain:
+                # domain name, domain field, subtype code
                 domain_df = domain_df.iloc[2:-1, :2]  # Only select 2nd to 2nd last row and first two columns
+
             else:
                 domain_df = domain_df.iloc[2:, :2]  # Only select 2nd to 2nd last row and first two columns
 
