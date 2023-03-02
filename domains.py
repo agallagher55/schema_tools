@@ -56,6 +56,7 @@ def remove_code_value(workspace, domain_name, code):
         domain_name,
         code
     )
+    print(f"\tSuccessfully removed code {code} from domain {domain_name}.")
 
 
 @arcpy_messages
