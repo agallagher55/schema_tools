@@ -16,41 +16,34 @@ config.read('config.ini')
 
 CURRENT_DIR = getcwd()
 
-domain_change_info = {
-    "AST_tree_sp_scien": {
-        "CAJA": "Carpinus japonica",
-        "CRVI": "Crataegus viridis",
-        "FRQU": "Fraxinus quadrangulata",
-        "MALO": "Magnolia x loebneri",
-        "QUBI": "Quercus bicolor",
-        "QUCO": "Quercis coccinea",
-        "QUMU": "Quercis muehlenbergii",
-        "SAAL": "Sassafras albidium",
-        "SO": "Sorbus species",
-        "ULAC": "Ulmus x morton"
+ADD_CODE_VALUES = {
+    "LND_zoning_HPSBB": {
+        "R-1B": "R-1B",
+        "R-1C": "R-1C",
     },
-    "AST_tree_sp_comm": {
-        "CAJA": "Japanese Hornbeam",
-        "CRVI": "Green Hawthorn",
-        "FRQU": "Blue Ash",
-        "MALO": "Loebner Magnolia",
-        "QUBI": "Swamp White Oak",
-        "QUCO": "Scarlet Oak",
-        "QUMU": "Chinquapin oak",
-        "SAAL": "Sassafras",
-        "SO": "Mountain Ash",
-        "ULAC": "Accolade elm",
-    }
+
 }
+
+REMOVE_CODE_VALUES = {
+    "LND_zoning_HPSBB":
+        {
+            "R-1b": "R-1b"
+        },
+    }
+
 
 if __name__ == "__main__":
     local_gdb = utils.create_fgdb(CURRENT_DIR)
 
     for dbs in [
         # [local_gdb],
-        [config.get("SERVER", "dev_rw"), config.get("SERVER", "dev_ro"), config.get("SERVER", "dev_web_ro_gdb")],
-        # [config.get("SERVER", "qa_rw")],
-        # [config.get("SERVER", "prod_rw")],
+        # [config.get("SERVER", "dev_rw"), config.get("SERVER", "dev_ro"), config.get("SERVER", "dev_web_ro_gdb")],
+        # [
+        #     config.get("SERVER", "qa_rw"),
+        #     config.get("SERVER", "qa_ro"),
+        #     config.get("SERVER", "qa_web_ro_gdb")
+        # ],
+        [config.get("SERVER", "prod_rw"), config.get("SERVER", "prod_ro"), config.get("SERVER", "prod_web_ro_gdb")],
     ]:
 
         print(f"\nProcessing dbs: {', '.join(dbs)}...")
@@ -61,19 +54,25 @@ if __name__ == "__main__":
             if db == local_gdb:
 
                 # Check for domains in local workspace
-                domain_present, unfound_domains = domains.domains_in_db(local_gdb, list(domain_change_info.keys()))
+                domain_present, unfound_domains = domains.domains_in_db(local_gdb, list(ADD_CODE_VALUES.keys()))
 
                 if unfound_domains:
                     PC_NAME = environ['COMPUTERNAME']
                     prod_sde = config.get("SERVER", "prod_rw") if "APP" in PC_NAME else config.get("SERVER", "prod_rw")
 
                     domains.transfer_domains(
-                        list(domain_change_info.keys()),
+                        list(ADD_CODE_VALUES.keys()),
                         local_gdb,
                         from_workspace=prod_sde
                     )
 
-            for domain in domain_change_info:
+            for domain in REMOVE_CODE_VALUES:
+                remove_codes = list(REMOVE_CODE_VALUES[domain].keys())
+
+                for count, code in enumerate(remove_codes, start=1):
+                    domains.remove_code_value(db, domain, code)
+
+            for domain in ADD_CODE_VALUES:
                 print(f"\tDOMAIN: {domain}")
 
                 # Check that domain is found in database connection
@@ -82,10 +81,13 @@ if __name__ == "__main__":
                 if not domain_found:
                     raise ValueError(f"Did not find domain '{domain}' in db. Found domains: {', '.join(db_domains)}")
 
-                add_code_values = domain_change_info[domain]
+                add_code_values = ADD_CODE_VALUES[domain]
                 for count, code_value in enumerate(add_code_values, start=1):
-                    new_code = code_value
+                    new_code = code_value.upper()
                     new_value = add_code_values[code_value]
-                    
+
                     print(f"{count}/{len(add_code_values)})")
                     domains.add_code_value(db, domain, new_code, new_value)
+
+# TODO: Unable to remove R-1b from RO due to a lock
+
