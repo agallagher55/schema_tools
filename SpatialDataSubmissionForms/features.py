@@ -65,7 +65,7 @@ class Feature:
 
     @arcpy_messages
     def create_feature(self):
-        print(f"\nCreating {self.geometry_type or ''} Feature class '{self.feature_name}'...")
+        print(f"\nCreating {self.geometry_type or ''} feature '{self.feature_name}'...")
 
         # Check if feature already exists
         if arcpy.Exists(self.feature):
@@ -73,21 +73,30 @@ class Feature:
             self.fields = {x.name for x in arcpy.ListFields(self.feature)}
             return self.feature
 
-        arcpy.CreateFeatureclass_management(
-            out_path=self.workspace,
-            out_name=self.feature_name,
-            geometry_type=self.geometry_type,
-            spatial_reference=self.spatial_reference,
-            out_alias=self.alias
-        )
+        # Check if feature is a table
+        if self.geometry_type.upper() == "ENTERPRISE GEODATABASE TABLE":
+            arcpy.CreateTable_management(
+                out_path=self.workspace,
+                out_name=self.feature_name,
+                out_alias=self.alias
+            )
+
+        else:
+            arcpy.CreateFeatureclass_management(
+                out_path=self.workspace,
+                out_name=self.feature_name,
+                geometry_type=self.geometry_type,
+                spatial_reference=self.spatial_reference,
+                out_alias=self.alias
+            )
 
         self.fields = {x.name for x in arcpy.ListFields(self.feature)}
-        print("\tFeature Created.")
+        print(f"\t{self.geometry_type} feature Created.")
 
         return self.feature
 
     @arcpy_messages
-    def add_field(self, field_name: str, field_type: str, length: int, alias: str, nullable: str, domain_name: str):
+    def add_field(self, field_name: str, field_type: str, length: int, alias: str, domain_name: str):
         """
         Although the Field object's type property values are not an exact match for the keywords used by the Add Field
         tool's field_type parameter, all of the Field object's type values can be used as input to this parameter.
@@ -120,9 +129,6 @@ class Feature:
             print(f"Field Type: {field_type}")
             raise ValueError(f"Field type: '{field_type}' does not appear to be a valid field type!")
 
-        if nullable not in ("NULLABLE", "NON_NULLABLE", None, "#"):
-            raise ValueError(f"Nullable Value, '{nullable}' does not appear to be a valid value!")
-
         # if field_type == "SHORT":
         #     field_precision = input("Please provide field precision: ")
         #
@@ -140,7 +146,7 @@ class Feature:
             field_scale="#",
             field_length=length,  # Field Length (# of characters)
             field_alias=alias,  # Alias
-            field_is_nullable=nullable,  # NULLABLE
+            field_is_nullable="NULLABLE",  # NULLABLE
             field_is_required=FIELD_REQUIRED,  #
             field_domain=domain_name  # Domain
         )
@@ -259,7 +265,7 @@ class Feature:
 
     @arcpy_messages
     def assign_domain(self, field_name, domain_name, subtypes="#"):
-        print(f"\nAssigning domain '{domain_name}' to field '{field_name}...'")
+        print(f"\nAssigning domain '{domain_name}' to field '{field_name}'...")
 
         # TODO: Check if field already has domain assigned.
 
