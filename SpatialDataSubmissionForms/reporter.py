@@ -27,7 +27,7 @@ class Report:
         df_feature_details.columns = [x.strip(":") for x in df_feature_details.columns]
 
         feature_class_name = df_feature_details['Feature Class Name'].values[0]
-        shape_type = df_feature_details["Shape Type"].values[0]
+        shape_type = df_feature_details["Shape Type"].values[0] or "Enterprise Geodatabase Table"
         feature_type = df_feature_details["Feature Type"].values[0]
 
         return [feature_class_name, shape_type, feature_type]
@@ -54,15 +54,23 @@ class FieldsReport(Report):
         new_fields = ("Subtype Field",)
         cols = (
             "Field Name", "Description", "Alias", "Field Type",
-            "Field Length (# of characters)", "Nullable", "Default Value", "Domain", "Notes"
+            "Field Length (# of characters)", "Nullable", "Default Value", "Domain", "Subtype Field", "Notes"
         )
 
         # Error Checking
         # Make sure shape length, shape_area fields are included
-        if "SHAPE_AREA" not in [x.upper() for x in cols] or "SHAPE_LENGTH" not in [x.upper() for x in cols]:
-            raise IndexError(f"ERROR: SDSF needs to have SHAPE_AREA/LENGTH fields.")
+        df_index_values = self.df.index.values.tolist()
 
-        df_field_details = self.df.loc["Field Name":"SHAPE_Length"]
+        if self.feature_type.upper() != "ENTERPRISE GEODATABASE TABLE":
+            if "SHAPE_AREA" not in [str(x).upper() for x in df_index_values] or "SHAPE_LENGTH" not in [str(x).upper() for x in df_index_values]:
+                raise IndexError(f"ERROR: SDSF needs to have SHAPE_AREA/LENGTH fields.")
+
+        last_field_name = "SHAPE_Length"
+        if self.feature_type.upper() == 'ENTERPRISE GEODATABASE TABLE':
+            last_field_name = "GLOBALID"
+
+        df_field_details = self.df.loc["Field Name":last_field_name]
+
         df_field_details.reset_index(inplace=True)
 
         df_field_details.columns = df_field_details.iloc[0]  # Set DataFrame columns as first row
@@ -82,16 +90,16 @@ class FieldsReport(Report):
 
 
 class DomainsReport(Report):
-    def __init__(self, excel_path, sheet_name="DATASET DETAILS"):
+    def __init__(self, excel_path, subtype_field=(), sheet_name="DATASET DETAILS"):
         super().__init__(excel_path, sheet_name)
 
-        self.domain_names = list()
-        self.domain_data = dict()
+        self.subtype_field = subtype_field
+
         self.domain_df = pd.DataFrame()
 
-        self.domain_info()
+        self.domain_names, self.domain_data = list(), dict()
 
-    def domain_info(self) -> dict:
+    def domain_info(self):
         """
         :return: {domain_name, dataframe, subtype_code}
         """
@@ -110,17 +118,20 @@ class DomainsReport(Report):
         self.domain_df.index = df_index
 
         # Create json structure for domains
-        domain_data = dict()
+        index_data = dict()
+        subtype_data = dict()
 
         # Iterate through index to domains
         for count, index_value in enumerate(self.domain_df.index):
 
             if index_value == "Code":
-                domain_name = self.domain_df.index[count - 1]  # Domain name will precede row index with value of Code
-                row_index_start = self.domain_df.index.tolist().index(domain_name)
-                domain_data[domain_name] = {"start_index": row_index_start}
+                domain_name = self.domain_df.index[count - 1]
 
-        domain_names = list(domain_data.keys())
+                row_index_start = self.domain_df.index.tolist().index(domain_name)  # Domain name will precede row index with value of Code
+
+                index_data[domain_name] = {"start_index": row_index_start}
+
+        domain_names = list(index_data.keys())
         last_domain = domain_names[-1]
 
         for count, current_domain_name in enumerate(domain_names):
@@ -138,6 +149,12 @@ class DomainsReport(Report):
             domain_df.reset_index(inplace=True)  # Adds current index as first column
             domain_df.columns = domain_df.iloc[1]  # Set first column as df header
 
+            domain_name = domain_df.iloc[0, 0]
+            domain_field = domain_df.iloc[0, 1]
+            subtype_code = domain_df.iloc[0, 2]
+            domain_subtype = {"subtype_code": subtype_code, "domain_field": domain_field, "subtype_field": self.subtype_field}  # TODO: include subtype field
+            subtype_data[domain_name] = domain_subtype
+
             if next_domain:
                 # domain name, domain field, subtype code
                 domain_df = domain_df.iloc[2:-1, :2]  # Only select 2nd to 2nd last row and first two columns
@@ -153,7 +170,4 @@ class DomainsReport(Report):
             if not num_df_rows == 0:
                 domain_dataframes[current_domain_name] = domain_df
 
-        self.domain_data = domain_dataframes
-        self.domain_names = list(self.domain_data.keys())
-
-        return domain_dataframes
+        return subtype_data, domain_dataframes
