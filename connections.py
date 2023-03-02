@@ -133,7 +133,7 @@ def connection_type(db: str) -> (str, str):
 
     elif ro_sde_db:
         print(f"\t --> RO SDE")
-        return "SDE", "RW"
+        return "SDE", "RO"
 
     elif ro_gdb:
         print(f"\t --> Local RO")
