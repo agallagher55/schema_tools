@@ -26,7 +26,7 @@ SUBTYPES = False
 TOPOLOGY_DATASET = False
 
 READY_TO_ADD_TO_REPLICA = True
-REPLICA_NAME = 'AST_Rosde'
+REPLICA_NAME = 'AST_Rosde'  # Do not need to include SDEADM
 
 # SDE = config.get("LOCAL", "prod_rw")
 SDE = config.get("SERVER", "prod_rw")
@@ -43,14 +43,13 @@ IMMUTABLE_FIELDS = {
 
 
 if __name__ == "__main__":
-    sdsf = r"T:\work\giss\monthly\202210oct\gallaga\Pedestrian Ramps\Pedestrian Ramps Tactiles 10May2022.xlsx"
+    sdsf = r"T:\work\giss\monthly\202302feb\gallaga\AST_flag\AST_FLAG_New_relTABLE__21Feb2023.xlsx"
 
     sheet_name = "DATASET DETAILS"
 
     unique_id_fields = {
-        'AST_ped_ramp': [
-            {"field": "PEDRMPID", "prefix": "PEDRMP"},
-            {"field": "ASSETID", "prefix": "PEDRMP"}
+        'AST_FLAG': [
+            {"field": "FLAGID", "prefix": "FLG"},
         ]
     }
 
@@ -62,13 +61,20 @@ if __name__ == "__main__":
     local_gdb = utils.create_fgdb(out_folder_path=CURRENT_DIR, out_name="scratch.gdb")
 
     for dbs in [
-        [local_gdb],
-        # connections.dev_connections,
-        # [config.get("SERVER", "dev_rw")],
-        # [config.get("SERVER", "qa_rw")],
-        # [config.get("SERVER", "prod_rw")],
-        # connections.qa_connections,
-        # connections.prod_connections
+        # [local_gdb],
+        # [
+        #     config.get("SERVER", "dev_rw"),
+        #     config.get("SERVER", "dev_ro"),
+        # ],
+        # [
+        #     config.get("SERVER", "qa_rw"),  # qa_ro, qa_web_ro will get copied to db when processing rw
+        #     config.get("SERVER", "qa_web_ro_gdb"),
+        # ],
+        [
+            config.get("SERVER", "prod_rw"),  # qa_ro, qa_web_ro will get copied to db when processing rw
+            config.get("SERVER", "prod_web_ro_gdb"),
+        ],
+
     ]:
 
         for count, db in enumerate(dbs, start=1):
@@ -91,15 +97,18 @@ if __name__ == "__main__":
 
                 field_data = fields_report.field_details
 
-                if SUBTYPES:
-                    subtype_info = fields_report.subtype_info()
-                    subtype_field = subtype_info.get("subtype_field")
-                    subtype_domains_field = subtype_info.get("subtype_domains_field")
-
                 domains_report = DomainsReport(xl_file)
 
                 domain_data, domain_dataframes = domains_report.domain_info()
                 domain_names = list(domain_data.keys())
+
+                if SUBTYPES:
+                    subtype_info = fields_report.subtype_info()
+                    subtype_field = subtype_info.get("subtype_field")
+                    subtype_field = [value.get("subtype_field") for key, value in domain_data.items() if value.get("subtype_field")][0]
+                    subtype_domains_field = subtype_info.get("subtype_domains_field")
+                    subtype_data = {key: value for key, value in domain_data.items() if
+                                    domain_data[key].get("subtype_code")}
 
                 if db_type == "GDB":
 
@@ -204,7 +213,7 @@ if __name__ == "__main__":
                                 field_type=field_type,
                                 length=field_len,
                                 alias=alias,
-                                nullable=nullable,
+                                # nullable=nullable,
                                 domain_name=domain
                             )
 
@@ -227,7 +236,14 @@ if __name__ == "__main__":
                     new_feature.add_gloablids()
 
                     # ADD EDITOR TRACKING FIELDS
-                    new_feature.add_editor_tracking_fields()
+                    if db_type == "SDE" and db_rights == "RW":
+                        new_feature.add_editor_tracking_fields()
+
+                    # Update Privileges
+                    new_feature.change_privileges(
+                        user=USER_PRIVILEGE,
+                        view=VIEW_PRIVILEGE
+                    )
 
                     # SUBTYPES
                     if SUBTYPES:
@@ -235,46 +251,93 @@ if __name__ == "__main__":
 
                     if db_type == "SDE" and db_rights == "RW":
 
-                        if READY_TO_ADD_TO_REPLICA:
+                        # Register as Versioned
+                        new_feature.register_as_versioned()  # needs to be versioned to add to replica
 
-                            # Register as Versioned
-                            new_feature.register_as_versioned()
+                        # Copy RW features to RO
+                        # TODO: Copy to web geodatabase
+                        ro_sdeadm_db = db.replace("RW", "RO")
+                        ro_webgis_db = ro_sdeadm_db.upper().replace("SDEADM", "WEBGIS")
 
-                            # Copy RW feature to RO
-                            ro_sde_db = db.replace("RW", "RO")
-                            ro_exists = arcpy.Exists(ro_sde_db)
+                        ro_sdeadm_feature = os.path.join(ro_sdeadm_db, new_feature.feature_name)
+                        ro_webgis_feature = os.path.join(ro_webgis_db, new_feature.feature_name)
 
-                            # TODO: Do we need to copy to web_ro.gdb ? Or only if, and when, we need to publish service?
-                            ro_feature = os.path.join(ro_sde_db, new_feature.feature_name)
+                        for ro_feature, ro_db in (ro_sdeadm_feature, ro_sdeadm_db), (ro_webgis_feature, ro_webgis_db):
+
+                            # Don't need to add to WEB if feature is a table
+                            if ro_db == ro_webgis_db and feature_shape.upper() == 'ENTERPRISE GEODATABASE TABLE':
+                                continue
 
                             if not arcpy.Exists(ro_feature):
-                                print("\tCopying RW feature to RO db...")
+                                print(f"\tCopying RW feature to {ro_db}...")
 
-                                # TODO: Will need to use table to table if a table...
-                                ro_feature = arcpy.conversion.FeatureClassToFeatureClass(
-                                    in_features=new_feature.feature,
-                                    out_path=ro_sde_db,
-                                    out_name=new_feature.feature_name,
-                                )[0]
+                                # Need to use table to table if a table...
+                                if feature_shape.upper() == 'ENTERPRISE GEODATABASE TABLE':
+                                    feature = arcpy.TableToTable_conversion(
+                                        in_rows=new_feature.feature,
+                                        out_path=ro_db,
+                                        out_name=new_feature.feature_name
+                                    )[0]
+
+                                else:
+                                    feature = arcpy.conversion.FeatureClassToFeatureClass(
+                                        in_features=new_feature.feature,
+                                        out_path=ro_db,
+                                        out_name=new_feature.feature_name,
+                                    )[0]
+
+                        if READY_TO_ADD_TO_REPLICA:
 
                             # Add feature to replica
                             replicas.add_to_replica(
                                 replica_name=REPLICA_NAME,
                                 rw_sde=db,
-                                ro_sde=ro_sde_db,
+                                ro_sde=ro_sdeadm_db,
                                 add_features=[new_feature.feature],
                                 topology_dataset=TOPOLOGY_DATASET
                             )
 
-                            # Un-version RO feature.
-                            print("\tRegistering RO feature as UN-versioned...")
-                            arcpy.UnregisterAsVersioned_management(in_dataset=ro_feature)
+                        # Un-version RO feature, disable editor tracking, index
+                        for feature in ro_sdeadm_feature, ro_webgis_feature:
 
-                    # Update Privileges
-                    new_feature.change_privileges(
-                        user=USER_PRIVILEGE,
-                        view=VIEW_PRIVILEGE
-                    )
+                            if arcpy.Exists(feature):  # ro_webgis_feature may not have ever gotten created if it was a table.
+
+                                print(f"\tRegistering as UN-versioned for '{feature}'...")
+                                arcpy.UnregisterAsVersioned_management(in_dataset=feature)
+
+                                print(f"\tDisabling Editor Tracking for '{feature}'...")
+                                arcpy.DisableEditorTracking_management(in_dataset=feature)
+
+                                # Set privileges
+                                arcpy.ChangePrivileges_management(
+                                    in_dataset=feature,
+                                    user="PUBLIC",
+                                    View="GRANT"
+                                )
+                                arcpy.ChangePrivileges_management(
+                                    in_dataset=feature,
+                                    user="SDE",
+                                    View="GRANT"
+                                )
+
+                                if feature_name in unique_id_fields:
+                                    id_field_info = unique_id_fields[feature_name]
+
+                                    for field_info in id_field_info:
+                                        id_field = field_info.get("field")
+
+                                        print(f"\nAdding attribute index on {id_field}...")
+                                        try:
+                                            arcpy.AddIndex_management(
+                                                in_table=feature,
+                                                fields=id_field,
+                                                index_name=f"index_{id_field}",
+                                                ascending="ASCENDING"
+                                            )
+
+                                        except arcpy.ExecuteError:
+                                            arcpy_msg = arcpy.GetMessages(2)
+                                            print(arcpy_msg)
 
                     # ENABLE EDITOR TRACKING
                     new_feature.enable_editor_tracking()
@@ -301,13 +364,10 @@ if __name__ == "__main__":
                                 arcpy.AddIndex_management(
                                     in_table=new_feature.feature,
                                     fields=id_field,
-                                    index_name=f"unique_index{id_field}",
+                                    index_name=f"index_{id_field}",
                                     ascending="ASCENDING"
                                 )
 
                             except arcpy.ExecuteError:
                                 arcpy_msg = arcpy.GetMessages(2)
                                 print(arcpy_msg)
-
-
-# TODO: Add to WGS84 script once in prod. (DC1-GIS-APP-P22)
