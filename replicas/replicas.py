@@ -174,7 +174,7 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
             # Add features already in replica to list of features given to the user
             add_features = sorted(list(set(curr_replica_features + add_features)))
 
-            # Unregister rw, ro replicas so they can be recreated with additional features
+            # Unregister rw, ro replicas, so they can be recreated with additional features
             for db in rw_sde, ro_sde:
                 print(f"\tUnregistering replica '{sde_replica_name}' from {db}...")
                 arcpy.UnregisterReplica_management(
@@ -213,27 +213,29 @@ if __name__ == "__main__":
     dev_rw = r"E:\HRM\Scripts\SDE\dev_RW_sdeadm.sde"
     dev_ro = r"E:\HRM\Scripts\SDE\dev_RO_sdeadm.sde"
 
-    # qa_rw = r"E:\HRM\Scripts\SDE\qa_RW_sdeadm.sde"
-    # qa_ro = r"E:\HRM\Scripts\SDE\qa_RO_sdeadm.sde"
+    qa_rw = r"E:\HRM\Scripts\SDE\qa_RW_sdeadm.sde"
+    qa_ro = r"E:\HRM\Scripts\SDE\qa_RO_sdeadm.sde"
+
+    prod_rw = r"E:\HRM\Scripts\SDE\prod_RW_sdeadm.sde"
+    prod_ro = r"E:\HRM\Scripts\SDE\prod_RO_sdeadm.sde"
 
     # my_replica = Replica("AST_Rosde", dev_ro)
 
-    replica_file = "replicas/adm_ro.txt"
+    # Reference text file outlining current list of features in target replica to get current replica features
+    replica_file = "replicas/LND_ro.txt"
     with open(replica_file, "r") as txtfile:
         replica_features = [x.strip("\n") for x in txtfile.readlines()]
 
     new_features = [
-        "SDEADM.ADM_maritimes",
-        "SDEADM.ADM_maritimes_250k",
-        "SDEADM.ADM_maritimes_clip"
+        "SDEADM.LND_off_leash_area",
     ]
 
     all_features = replica_features + new_features
 
     add_to_replica(
-        replica_name='ADM_Rosde',
-        rw_sde=dev_rw,
-        ro_sde=dev_ro,
+        replica_name='LND_Rosde',
+        rw_sde=prod_rw,
+        ro_sde=prod_ro,
         add_features=all_features,
         topology_dataset=False
     )
