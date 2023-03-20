@@ -277,6 +277,17 @@ class Feature:
         )
 
 
+class Table(Feature):
+    def __init__(self, workspace, feature_name: str, alias: str = "#"):
+        # workspace, feature_name: str, geometry_type, spatial_reference, alias: str = "#"
+
+        self.geometry_type = None
+        self.spatial_reference = None
+
+        super(Table, self).__init__(workspace, feature_name, self.geometry_type, self.spatial_reference, alias)
+
+
+
 if __name__ == "__main__":
     from reporter import FieldsReport
 
