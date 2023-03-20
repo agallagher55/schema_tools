@@ -2,7 +2,7 @@ import os.path
 
 import arcpy
 
-from features import Feature
+from features import Feature, Table
 import utils
 
 from configparser import ConfigParser
