@@ -164,9 +164,10 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
             rw_replica = [x for x in rw_replicas if x.name.upper() == sde_replica_name.upper()][0]
             curr_replica_features = rw_replica.datasets
 
-            # TODO: Write current replicas to txtfile
+            # Write current replicas to txtfile
             replica_file_name = f"{replica_name}.txt"
             print(f"\tWriting current replica features to {replica_file_name}")
+
             with open(replica_file_name, "w") as txtfile:
                 for feature in sorted(list(set(curr_replica_features))):
                     txtfile.write(f"{feature}\n")
@@ -210,6 +211,17 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
 
 
 if __name__ == "__main__":
+    """
+    So I added LND_special_planning_areas yesterday as I need to add it to a service and it is in RO for DEV/QA but 
+        not Prod which is why it failed. 
+        
+        I assumed since it was in RO for DEV/QA that it was in Prod and the replicas but apparently not. 
+        
+        Would you be able to update the replicas in all 3 environments when you have a chance? 
+        
+        Would need to be put into Prod RO as well.
+    """
+
     dev_rw = r"E:\HRM\Scripts\SDE\dev_RW_sdeadm.sde"
     dev_ro = r"E:\HRM\Scripts\SDE\dev_RO_sdeadm.sde"
 
@@ -219,23 +231,28 @@ if __name__ == "__main__":
     prod_rw = r"E:\HRM\Scripts\SDE\prod_RW_sdeadm.sde"
     prod_ro = r"E:\HRM\Scripts\SDE\prod_RO_sdeadm.sde"
 
-    # my_replica = Replica("AST_Rosde", dev_ro)
+    for rw_sde, ro_sde in (
+            # (dev_rw, dev_ro),
+            (qa_rw, qa_ro),
+    ):
 
-    # Reference text file outlining current list of features in target replica to get current replica features
-    replica_file = "replicas/LND_ro.txt"
-    with open(replica_file, "r") as txtfile:
-        replica_features = [x.strip("\n") for x in txtfile.readlines()]
+        # my_replica = Replica("AST_Rosde", dev_ro)
 
-    new_features = [
-        "SDEADM.LND_off_leash_area",
-    ]
+        # Reference text file outlining current list of features in target replica to get current replica features
+        replica_file = "replicas/LND_ro.txt"
+        with open(replica_file, "r") as txtfile:
+            replica_features = [x.strip("\n") for x in txtfile.readlines()]
 
-    all_features = replica_features + new_features
+        new_features = [
+            "SDEADM.LND_special_planning_areas",
+        ]
 
-    add_to_replica(
-        replica_name='LND_Rosde',
-        rw_sde=prod_rw,
-        ro_sde=prod_ro,
-        add_features=all_features,
-        topology_dataset=False
-    )
+        all_features = replica_features + new_features
+
+        add_to_replica(
+            replica_name='LND_Rosde',
+            rw_sde=rw_sde,
+            ro_sde=ro_sde,
+            add_features=all_features,
+            topology_dataset=False
+        )
