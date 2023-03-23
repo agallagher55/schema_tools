@@ -83,8 +83,7 @@ if __name__ == "__main__":
 
                 add_code_values = ADD_CODE_VALUES[domain]
                 for count, code_value in enumerate(add_code_values, start=1):
-                    new_code = code_value.upper()
                     new_value = add_code_values[code_value]
 
                     print(f"{count}/{len(add_code_values)})")
-                    domains.add_code_value(db, domain, new_code, new_value)
+                    domains.add_code_value(db, domain, code_value, new_value)
