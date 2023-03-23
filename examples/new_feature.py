@@ -25,7 +25,7 @@ config.read('config.ini')
 SUBTYPES = False
 TOPOLOGY_DATASET = False
 
-READY_TO_ADD_TO_REPLICA = True
+READY_TO_ADD_TO_REPLICA = False
 REPLICA_NAME = 'AST_Rosde'  # Do not need to include SDEADM
 
 # SDE = config.get("LOCAL", "prod_rw")
@@ -236,7 +236,7 @@ if __name__ == "__main__":
                     new_feature.add_gloablids()
 
                     # ADD EDITOR TRACKING FIELDS
-                    if db_type == "SDE" and db_rights == "RW":
+                    if db_type in ("SDE", "GDB") and db_rights in ("RW", ""):
                         new_feature.add_editor_tracking_fields()
 
                     # Update Privileges
