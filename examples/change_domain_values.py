@@ -88,6 +88,3 @@ if __name__ == "__main__":
 
                     print(f"{count}/{len(add_code_values)})")
                     domains.add_code_value(db, domain, new_code, new_value)
-
-# TODO: Unable to remove R-1b from RO due to a lock
-
