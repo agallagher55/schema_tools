@@ -87,8 +87,8 @@ def reproject(input_fc: str, output_gdb: str, output_sr=None, transformations=No
                 output_fc,
                 output_sr
             )
-            
-        print(f"Feature class re-projected to {output_fc}.")
+
+        print(f"\n\tFeature class re-projected to {output_fc}.")
         return output_fc
 
     except arcpy.ExecuteError:
