@@ -21,11 +21,11 @@ arcpy.SetLogHistory(False)
 
 features = [
     "ADM_parking_collection_zones",
-    "LND_SPECIAL_PLANNING_AREAS",
-    "LND_OFF_LEASH_AREA",
-    "AST_PED_RAMP",
-    "TRN_TRANSIT_SHELTER",
-    "TRN_traffic_calming_assessm"
+    # "LND_SPECIAL_PLANNING_AREAS",
+    # "LND_OFF_LEASH_AREA",
+    # "AST_PED_RAMP",
+    # "TRN_TRANSIT_SHELTER",
+    # "TRN_traffic_calming_assessm"
 ]
 
 
@@ -41,13 +41,7 @@ def reproject(input_fc: str, output_gdb: str, output_sr=None, transformations=No
         If None, the default is "WGS 1984 Web Mercator (Auxiliary Sphere)".
 
     Returns:
-    --------
-    None.
-
     Example:
-    --------
-    reproject("C:/data/input.gdb/input_fc", "C:/data/output.gdb/output_fc", "C:/data/output.gdb")
-
     """
 
     desc = arcpy.Describe(input_fc)
@@ -95,30 +89,49 @@ def reproject(input_fc: str, output_gdb: str, output_sr=None, transformations=No
         print(arcpy.GetMessages(2))
 
 
-
 if __name__ == "__main__":
 
     LOCAL_GDB = r"T:\work\giss\monthly\202303mar\gallaga\Parking Collection Zones\scripts\scratch.gdb"
 
-    SDE = r"E:\HRM\Scripts\SDE\prod_RO_webgis.sde"
-    # sde = R"E:\HRM\Scripts\SDE\qa_RO_webgis.sde"
+    PROD_SDE_WEB = R"E:\HRM\Scripts\SDE\prod_RO_webgis.sde"
+    PROD_SDE_RO = r"E:\HRM\Scripts\SDE\prod_RO_sdeadm.sde"
+    PROD_SDE_RW = r"E:\HRM\Scripts\SDE\prod_RW_sdeadm.sde"
 
-    with arcpy.EnvManager(workspace=SDE):
+    QA_SDE_WEB = R"E:\HRM\Scripts\SDE\qa_RO_webgis.sde"
+    QA_SDE_RO = r"E:\HRM\Scripts\SDE\qa_RO_sdeadm.sde"
+    QA_SDE_RW = r"E:\HRM\Scripts\SDE\qa_RW_sdeadm.sde"
+
+    with arcpy.EnvManager(workspace=PROD_SDE_WEB):
         for feature in features:
+            print(f"\nFeature: {feature}")
+
+            if not arcpy.Exists(feature):
+                rw_feature = os.path.join(
+                    PROD_SDE_RW, feature
+                )
+
+                reprojected_feature = reproject(
+                    rw_feature,
+                    PROD_SDE_WEB
+                )
 
             desc = arcpy.Describe(feature)
             sr = desc.spatialReference
 
             if sr.name == "NAD_1983_CSRS_2010_MTM_5_Nova_Scotia":
-                print(f"\nFeature: {feature}")
 
                 # project to local workspace
                 reprojected_feature = reproject(feature, LOCAL_GDB)
 
-                # from_fc, to_fc, to_fc_name
-                # reproject(
-                # 'E:\\\\HRM\\\\Scripts\\\\SDE\\\\qa_RO_sdeadm.sde\\SDEADM.TRN_streets_routes\\SDEADM.TRN_street',
-                # 'E:\\HRM\\Scripts\\Python3\\Project_to_WGS84\\\\Scratch\\Scratch.gdb\\TRN_street',
-                # '\\\\msfs201\\GISApp\\AGS_QA\\fgdbs\\web_RO.gdb\\TRN_street'
-                # )
+                # Delete webgis feature
+                print(f"Deleting {feature}...")
+                arcpy.Delete_management(feature)
+
+                # Copy re-projected feature
+                print(f"Copying re-projected feature...")
+                arcpy.FeatureClassToFeatureClass_conversion(
+                    reprojected_feature,
+                    PROD_SDE_WEB,
+                    feature
+                )
 
