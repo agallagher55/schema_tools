@@ -1,6 +1,3 @@
-import arcpy
-
-
 def connection_type(db: str) -> (str, str):
     """
     Determine the type and read-write status of a database.
@@ -19,7 +16,7 @@ def connection_type(db: str) -> (str, str):
     connection_type("database.gdb") -> ("GDB", "")
     """
 
-    print("\nAnalyzing database type...")
+    print(f"\nAnalyzing database type for {db}...")
 
     db = db.upper()
 
@@ -30,26 +27,26 @@ def connection_type(db: str) -> (str, str):
     scratch_gdb = db.endswith(".GDB") and "RO" not in db
 
     if rw_sde_db:
-        print(f"\t --> RW SDE")
+        print(f"\tDatabase Type: RW SDE")
         return "SDE", "RW"
 
     elif ro_sde_db:
-        print(f"\t --> RO SDE")
+        print(f"\tDatabase Type: RO SDE")
         return "SDE", "RO"
 
     elif ro_gdb:
-        print(f"\t --> Local RO")
+        print(f"\tDatabase Type: Local RO")
         return "GDB", "RO"
 
     elif scratch_gdb:
-        print(f"\t --> Local gdb")
+        print(f"\tDatabase Type: Local gdb")
         return "GDB", ""
 
     else:
-        print("\t --> *Unclassified db type...")
+        print("\tDatabase Type: *Unclassified.")
         return "", ""
 
 
 if __name__ == "__main__":
     db = "Geodatabase.gdb"
-    db_type, db_rights = connections.connection_type(db)
+    db_type, db_rights = connection_type(db)
