@@ -22,12 +22,6 @@ MAX_TABLE_NAME_LENGTH = 27
 config = ConfigParser()
 config.read('config.ini')
 
-SUBTYPES = False
-TOPOLOGY_DATASET = False
-
-READY_TO_ADD_TO_REPLICA = False
-REPLICA_NAME = 'AST_Rosde'  # Do not need to include SDEADM
-
 SDE = config.get("LOCAL", "prod_rw")
 
 if "GIS" in os.environ.get("USERNAME").upper():
@@ -46,6 +40,12 @@ IMMUTABLE_FIELDS = {
 
 
 if __name__ == "__main__":
+    READY_TO_ADD_TO_REPLICA = False
+    REPLICA_NAME = 'AST_Rosde'  # Do not need to include SDEADM
+
+    SUBTYPES = False
+    TOPOLOGY_DATASET = False
+    
     sdsf = r"T:\work\giss\monthly\202302feb\gallaga\AST_flag\AST_FLAG_New_relTABLE__21Feb2023.xlsx"
 
     sheet_name = "DATASET DETAILS"
