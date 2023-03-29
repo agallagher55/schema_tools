@@ -9,10 +9,9 @@ import replicas
 from configparser import ConfigParser
 
 from domains import transfer_domains, domains_in_db
-from subtypes import create_subtype
 
 from SpatialDataSubmissionForms.features import Feature
-from SpatialDataSubmissionForms.reporter import FieldsReport, DomainsReport
+from SpatialDataSubmissionForms.reporter import FieldsReport, DomainsReport, SpatialDataSubmissionFormError
 
 arcpy.env.overwriteOutput = True
 arcpy.SetLogHistory(False)
@@ -33,8 +32,8 @@ USER_PRIVILEGE = "PUBLIC"
 VIEW_PRIVILEGE = "GRANT"
 
 IMMUTABLE_FIELDS = {
-    "OBJECTID", "GLOBALID", 
-    "ADDBY", "ADDDATE", "MODBY", "MODDATE", 
+    "OBJECTID", "GLOBALID",
+    "ADDBY", "ADDDATE", "MODBY", "MODDATE",
     "SHAPE", "SHAPE_AREA", "SHAPE_LENGTH"
 }
 
@@ -45,18 +44,18 @@ if __name__ == "__main__":
 
     SUBTYPES = False
     TOPOLOGY_DATASET = False
-    
+
     SUBTYPE_FIELD = ""
     SUBTYPE_DOMAINS = {}
-    
-    sdsf = r"T:\work\giss\monthly\202302feb\gallaga\AST_flag\AST_FLAG_New_relTABLE__21Feb2023.xlsx"
+
+    sdsf = r"T:\work\giss\monthly\202303mar\gallaga\Transit Features\Future_ferry_routes_GIS_Design_AuthorityV2.xlsx"
 
     sheet_name = "DATASET DETAILS"
 
     unique_id_fields = {
-        'AST_FLAG': [
-            {"field": "FLAGID", "prefix": "FLG"},
-        ]
+        # 'AST_FLAG': [
+        #     {"field": "FLAGID", "prefix": "FLG"},
+        # ]
     }
 
     CURRENT_DIR = os.getcwd()
@@ -64,7 +63,7 @@ if __name__ == "__main__":
     local_gdb = utils.create_fgdb(out_folder_path=CURRENT_DIR, out_name="scratch.gdb")
 
     for dbs in [
-        # [local_gdb],
+        [local_gdb],
         # [
         #     config.get("SERVER", "dev_rw"),
         #     config.get("SERVER", "dev_ro"),
@@ -73,10 +72,10 @@ if __name__ == "__main__":
         #     config.get("SERVER", "qa_rw"),  # qa_ro, qa_web_ro will get copied to db when processing rw
         #     config.get("SERVER", "qa_web_ro_gdb"),
         # ],
-        [
-            config.get("SERVER", "prod_rw"),  # qa_ro, qa_web_ro will get copied to db when processing rw
-            config.get("SERVER", "prod_web_ro_gdb"),
-        ],
+        # [
+        #     config.get("SERVER", "prod_rw"),  # qa_ro, qa_web_ro will get copied to db when processing rw
+        #     config.get("SERVER", "prod_web_ro_gdb"),
+        # ],
 
     ]:
 
@@ -133,6 +132,12 @@ if __name__ == "__main__":
                     for domain in new_domains:
                         try:
                             field_type = "TEXT"
+
+                            # Check that no spaces are in domain - make sure SPSF is filled out correctly
+                            if domain.count(" ") > 0:
+                                error_message = f"Domain filled out incorrectly. Double check domain name, '{domain}'.\n" \
+                                                f"Ensure no spaces are present."
+                                raise SpatialDataSubmissionFormError(error_message)
 
                             # Check if domain is a subtype domain
                             if SUBTYPE_DOMAINS:
