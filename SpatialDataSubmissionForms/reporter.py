@@ -1,6 +1,10 @@
 import pandas as pd
 
 
+class SpatialDataSubmissionFormError(Exception):
+    pass
+
+
 class Report:
     def __init__(self, excel_path, sheet_name="DATASET DETAILS"):
         self.source = excel_path
