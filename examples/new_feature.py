@@ -128,6 +128,7 @@ if __name__ == "__main__":
                 # Create any new domains
                 if new_domains:
                     print(f"\nNew domains to create: {', '.join(new_domains)}")
+                    # These should all be found in fields_report.field_details
 
                     for domain in new_domains:
                         try:
