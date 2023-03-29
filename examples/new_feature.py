@@ -134,7 +134,7 @@ if __name__ == "__main__":
                         try:
                             field_type = "TEXT"
 
-                            # Check that no spaces are in domain - make sure SPSF is filled out correctly
+                            # Check that no spaces are in domain - make sure SDSF is filled out correctly
                             if domain.count(" ") > 0:
                                 error_message = f"Domain filled out incorrectly. Double check domain name, '{domain}'.\n" \
                                                 f"Ensure no spaces are present."
