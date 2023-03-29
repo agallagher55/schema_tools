@@ -111,7 +111,7 @@ def transfer_domains(domains: list, output_workspace, from_workspace) -> dict:
     unfound_domains = list()
 
     for count, domain in enumerate(domains, start=1):
-        print(f"\n{count}/{len(domains)}) Domain: '{domain}'")
+        print(f"{count}/{len(domains)}) Domain: '{domain}'")
 
         # Check for domain in source workspace
         if domain not in list(from_workspace_domains.keys()):
