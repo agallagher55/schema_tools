@@ -28,8 +28,10 @@ TOPOLOGY_DATASET = False
 READY_TO_ADD_TO_REPLICA = False
 REPLICA_NAME = 'AST_Rosde'  # Do not need to include SDEADM
 
-# SDE = config.get("LOCAL", "prod_rw")
-SDE = config.get("SERVER", "prod_rw")
+SDE = config.get("LOCAL", "prod_rw")
+
+if "GIS" in os.environ.get("USERNAME").upper():
+    SDE = config.get("SERVER", "prod_rw")
 
 SPATIAL_REFERENCE = os.path.join(SDE, "SDEADM.LND_hrm_parcel_parks", "SDEADM.LND_hrm_park")
 
