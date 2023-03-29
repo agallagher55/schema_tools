@@ -37,31 +37,29 @@ class FieldsReport(Report):
     def __init__(self, excel_path, sheet_name="DATASET DETAILS"):
         super().__init__(excel_path, sheet_name)
         self.field_details = self.field_info()
-        self.subtype_fields = self.subtype_info()
+
+        if "Subtype Field" in [x for x in self.field_details.columns]:
+            self.subtype_fields = self.subtype_info()
 
     def subtype_info(self):
-        # Get subtypes
         fields_df = self.field_details
+
+        if "Subtype Field" not in [x for x in fields_df.columns]:
+            return ()
+
         subtype_field_df = fields_df[fields_df["Subtype Field"].notnull()]
 
         if not subtype_field_df.empty:
             subtype_fields = (x for x in subtype_field_df["Field Name"])
             return subtype_fields
 
-        return ()
-
     def field_info(self):
-        new_fields = ("Subtype Field",)
-        cols = (
-            "Field Name", "Description", "Alias", "Field Type",
-            "Field Length (# of characters)", "Nullable", "Default Value", "Domain", "Subtype Field", "Notes"
-        )
-
-        # Error Checking
-        # Make sure shape length, shape_area fields are included
         df_index_values = self.df.index.values.tolist()
 
+        last_field_name = "GLOBALID"
+
         if self.feature_type.upper() == "FEATURE CLASS":
+            last_field_name = "SHAPE_Length"
 
             if self.feature_shape.upper() == "POLYGON":
                 if "SHAPE_AREA" not in [str(x).upper() for x in df_index_values] or "SHAPE_LENGTH" not in [str(x).upper() for x in df_index_values]:
@@ -71,16 +69,14 @@ class FieldsReport(Report):
                 if "SHAPE_LENGTH" not in [str(x).upper() for x in df_index_values]:
                     raise IndexError(f"ERROR: SDSF needs to have a SHAPE_LENGTH field.")
 
-        last_field_name = "SHAPE_Length"
-        if self.feature_type.upper() == 'ENTERPRISE GEODATABASE TABLE':
-            last_field_name = "GLOBALID"
-
         df_field_details = self.df.loc["Field Name":last_field_name]
 
         df_field_details.reset_index(inplace=True)
 
         df_field_details.columns = df_field_details.iloc[0]  # Set DataFrame columns as first row
-        df_field_details = df_field_details.loc[:, cols]  # Limit columns to columns list
+        columns = [x for x in df_field_details.columns if x]
+
+        df_field_details = df_field_details.loc[:, columns]  # Limit columns to columns list
 
         df_field_details = df_field_details.iloc[1:]  # Ignore columns row as a data row
 
