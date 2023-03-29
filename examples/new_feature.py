@@ -46,6 +46,9 @@ if __name__ == "__main__":
     SUBTYPES = False
     TOPOLOGY_DATASET = False
     
+    SUBTYPE_FIELD = ""
+    SUBTYPE_DOMAINS = {}
+    
     sdsf = r"T:\work\giss\monthly\202302feb\gallaga\AST_flag\AST_FLAG_New_relTABLE__21Feb2023.xlsx"
 
     sheet_name = "DATASET DETAILS"
@@ -55,9 +58,6 @@ if __name__ == "__main__":
             {"field": "FLAGID", "prefix": "FLG"},
         ]
     }
-
-    SUBTYPE_FIELD = ""
-    SUBTYPE_DOMAINS = {}
 
     CURRENT_DIR = os.getcwd()
 
