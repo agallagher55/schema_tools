@@ -190,14 +190,16 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
             in_type="ONE_WAY_REPLICA",
             out_geodatabase=ro_sde,
             out_name=replica_name,
-            access_type=access_type,  # FULL: SNF = Full, the rest = Simple; Complex types (topologies and networks) are supported and the data must be versioned.
+            access_type=access_type,
+            # FULL: SNF = Full, the rest = Simple; Complex types (topologies and networks) are supported and the data must be versioned.
             initial_data_sender="PARENT_DATA_SENDER",
             expand_feature_classes_and_tables="USE_DEFAULTS",
             reuse_schema="DO_NOT_REUSE",  # This parameter is only available for checkout replicas.
             get_related_data="GET_RELATED",
             geometry_features=None,
             archiving="DO_NOT_USE_ARCHIVING",
-            register_existing_data="REGISTER_EXISTING_DATA",  # Specifies whether existing data in the child geodatabase will be used to define the replica datasets. The datasets in the child geodatabase must have the same names as the datasets in the parent geodatabase.
+            register_existing_data="REGISTER_EXISTING_DATA",
+            # Specifies whether existing data in the child geodatabase will be used to define the replica datasets. The datasets in the child geodatabase must have the same names as the datasets in the parent geodatabase.
             out_type="GEODATABASE",
             out_xml=None
         )
@@ -211,16 +213,6 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
 
 
 if __name__ == "__main__":
-    """
-    So I added LND_special_planning_areas yesterday as I need to add it to a service and it is in RO for DEV/QA but 
-        not Prod which is why it failed. 
-        
-        I assumed since it was in RO for DEV/QA that it was in Prod and the replicas but apparently not. 
-        
-        Would you be able to update the replicas in all 3 environments when you have a chance? 
-        
-        Would need to be put into Prod RO as well.
-    """
 
     dev_rw = r"E:\HRM\Scripts\SDE\dev_RW_sdeadm.sde"
     dev_ro = r"E:\HRM\Scripts\SDE\dev_RO_sdeadm.sde"
@@ -235,7 +227,6 @@ if __name__ == "__main__":
             # (dev_rw, dev_ro),
             (qa_rw, qa_ro),
     ):
-
         # my_replica = Replica("AST_Rosde", dev_ro)
 
         # Reference text file outlining current list of features in target replica to get current replica features
