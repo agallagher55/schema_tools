@@ -1,49 +1,9 @@
 import arcpy
 
-# TODO: Update to include server sde connections
-
-# DEV
-dev_rw = "C:\\Users\\gallaga\\AppData\\Roaming\\Esri\\ArcGISPro\\Favorites\\DEV_RW_SDEADM.sde"
-dev_ro = "C:\\Users\\gallaga\\AppData\\Roaming\\Esri\\ArcGISPro\\Favorites\\DEV_RO_SDEADM.sde"
-dev_web_ro = "C:\\Users\\gallaga\\AppData\\Roaming\\Esri\\ArcGISPro\\Favorites\\webgis_DEV_RO.sde"  # Only need to include when adding a new domain to a field
-dev_web_ro_gdb = r"\\msfs06\GISApp\AGS_Dev\fgdbs\web_RO.gdb"
-dev_connections = [
-    dev_rw,
-    dev_ro,
-    dev_web_ro,
-    dev_web_ro_gdb
-]
-
-qa_rw = "C:\\Users\\gallaga\\AppData\\Roaming\\Esri\\ArcGISPro\\Favorites\\QA_RW_SDEADM.sde"
-qa_ro = "C:\\Users\\gallaga\\AppData\\Roaming\\Esri\\ArcGISPro\\Favorites\\QA_RO_SDEADM.sde"
-qa_web_ro = "C:\\Users\\gallaga\\AppData\\Roaming\\Esri\\ArcGISPro\\Favorites\\QA_RO_webgis.sde"  # Only need to include when adding a new domain to a field
-qa_web_ro_gdb = r"\\msfs06\GISApp\AGS_QA\fgdbs\web_RO.gdb"
-
-qa_connections = [
-    # qa_ro,
-    # qa_web_ro,
-    # qa_web_ro_gdb,
-    qa_rw,
-
-]
-
-
-prod_rw = "C:\\Users\\gallaga\\AppData\\Roaming\\Esri\\ArcGISPro\\Favorites\\PROD_RW_SDEADM.sde"
-prod_ro = "C:\\Users\\gallaga\\AppData\\Roaming\\Esri\\ArcGISPro\\Favorites\\PROD_RO_SDEADM.sde"
-prod_ro_web = "C:\\Users\\gallaga\\AppData\\Roaming\\Esri\\ArcGISPro\\Favorites\\webgis_PROD_RO_win.sde"  # Only need to include when adding a new domain to a field
-prod_web_ro_gdb = r"\\msfs06\GISApp\AGS_Prod\fgdbs\web_RO.gdb"
-
-prod_connections = [
-    # prod_ro,
-    # prod_ro_web,
-    # prod_web_ro_gdb,
-    prod_rw
-]
-
 
 def prevent_connections(sde):
     import time
-    
+
     with arcpy.EnvManager(workspace=sde):
         # Block new connections to the database.
         try:
@@ -67,7 +27,6 @@ def prevent_connections(sde):
 
 
 def allow_connections(sde):
-
     # Allow the database to begin accepting connections again
     try:
         print(f'Accepting Connections from {sde}...')
