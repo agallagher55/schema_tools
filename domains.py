@@ -138,7 +138,7 @@ def transfer_domains(domains: list, output_workspace, from_workspace) -> dict:
                 domain_info = from_workspace_domains.get(domain).get("coded_values")
 
                 for code, value in domain_info.items():
-                    print(f"\tAdding ({code}: {value})")
+                    print(f"\tAdding [{code}: {value}]")
                     arcpy.AddCodedValueToDomain_management(
                         in_workspace=output_workspace,
                         domain_name=domain,
