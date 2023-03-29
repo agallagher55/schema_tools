@@ -61,9 +61,15 @@ class FieldsReport(Report):
         # Make sure shape length, shape_area fields are included
         df_index_values = self.df.index.values.tolist()
 
-        if self.feature_type.upper() != "ENTERPRISE GEODATABASE TABLE":
-            if "SHAPE_AREA" not in [str(x).upper() for x in df_index_values] or "SHAPE_LENGTH" not in [str(x).upper() for x in df_index_values]:
-                raise IndexError(f"ERROR: SDSF needs to have SHAPE_AREA/LENGTH fields.")
+        if self.feature_type.upper() == "FEATURE CLASS":
+
+            if self.feature_shape.upper() == "POLYGON":
+                if "SHAPE_AREA" not in [str(x).upper() for x in df_index_values] or "SHAPE_LENGTH" not in [str(x).upper() for x in df_index_values]:
+                    raise IndexError(f"ERROR: SDSF needs to have SHAPE_AREA and SHAPE_LENGTH fields.")
+
+            elif self.feature_shape.upper() == "LINE":
+                if "SHAPE_LENGTH" not in [str(x).upper() for x in df_index_values]:
+                    raise IndexError(f"ERROR: SDSF needs to have a SHAPE_LENGTH field.")
 
         last_field_name = "SHAPE_Length"
         if self.feature_type.upper() == 'ENTERPRISE GEODATABASE TABLE':
