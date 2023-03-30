@@ -96,7 +96,7 @@ if __name__ == "__main__":
                 feature_name = fields_report.feature_class_name  # Should be all lower case except for the prefix
                 feature_shape = fields_report.feature_shape
 
-                if feature_shape == "Line":
+                if feature_shape.upper() == "LINE":
                     feature_shape = "Polyline"
 
                 field_data = fields_report.field_details
