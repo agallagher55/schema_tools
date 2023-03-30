@@ -245,10 +245,11 @@ if __name__ == "__main__":
                         new_feature.add_editor_tracking_fields()
 
                     # Update Privileges
-                    new_feature.change_privileges(
-                        user=USER_PRIVILEGE,
-                        view=VIEW_PRIVILEGE
-                    )
+                    if db_type != "GDB":
+                        new_feature.change_privileges(
+                            user=USER_PRIVILEGE,
+                            view=VIEW_PRIVILEGE
+                        )
 
                     # SUBTYPES
                     if SUBTYPES:
