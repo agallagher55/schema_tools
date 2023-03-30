@@ -140,6 +140,13 @@ class DomainsReport(Report):
         domain_names = list(index_data.keys())
         last_domain = domain_names[-1]
 
+        # Check that no spaces are in domain - make sure SDSF is filled out correctly
+        for domain_name in domain_names:
+            if domain_name.count(" ") > 0:
+                error_message = f"Domain filled out incorrectly. Double check domain name, '{domain_name}'.\n" \
+                                f"Ensure no spaces are present."
+                raise SpatialDataSubmissionFormError(error_message)
+
         for count, current_domain_name in enumerate(domain_names):
             next_domain = None
 
