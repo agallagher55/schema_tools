@@ -6,12 +6,14 @@ import attribute_rules
 import utils
 import replicas
 
+
 from configparser import ConfigParser
 
+from subtypes import create_subtype
 from domains import transfer_domains, domains_in_db
 
 from SpatialDataSubmissionForms.features import Feature
-from SpatialDataSubmissionForms.reporter import FieldsReport, DomainsReport, SpatialDataSubmissionFormError
+from SpatialDataSubmissionForms.reporter import FieldsReport, DomainsReport
 
 arcpy.env.overwriteOutput = True
 arcpy.SetLogHistory(False)
@@ -133,12 +135,6 @@ if __name__ == "__main__":
                     for domain in new_domains:
                         try:
                             field_type = "TEXT"
-
-                            # Check that no spaces are in domain - make sure SDSF is filled out correctly
-                            if domain.count(" ") > 0:
-                                error_message = f"Domain filled out incorrectly. Double check domain name, '{domain}'.\n" \
-                                                f"Ensure no spaces are present."
-                                raise SpatialDataSubmissionFormError(error_message)
 
                             # Check if domain is a subtype domain
                             if SUBTYPE_DOMAINS:
