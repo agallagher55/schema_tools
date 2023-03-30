@@ -25,7 +25,7 @@ config.read('config.ini')
 
 SDE = config.get("LOCAL", "prod_rw")
 
-if "GIS" in os.environ.get("USERNAME").upper():
+if "GIS" in os.environ.get("COMPUTERNAME").upper():
     SDE = config.get("SERVER", "prod_rw")
 
 SPATIAL_REFERENCE = os.path.join(SDE, "SDEADM.LND_hrm_parcel_parks", "SDEADM.LND_hrm_park")
@@ -50,7 +50,9 @@ if __name__ == "__main__":
     SUBTYPE_FIELD = ""
     SUBTYPE_DOMAINS = {}
 
-    sdsf = r"T:\work\giss\monthly\202303mar\gallaga\Transit Features\Future_ferry_routes_GIS_Design_AuthorityV2.xlsx"
+    sdsf = "../Spatial Data Forms/Future_ferry_routes_GIS_Design_AuthorityV2.xlsx"
+    sdsf_2 = "../Spatial Data Forms/MFTP_transit_network_GIS_Design_AuthorityV2.xlsx"
+    sdsf_3 = "../Spatial Data Forms/Planned_BRT_routes_GIS_Design_AuthorityV2.xlsx"
 
     sheet_name = "DATASET DETAILS"
 
@@ -88,7 +90,9 @@ if __name__ == "__main__":
             db_type, db_rights = connections.connection_type(db)
 
             for xl_file in [
-                sdsf,
+                # sdsf,
+                sdsf_2,
+                # sdsf_3
             ]:
                 print(f"\nCreating feature from {xl_file}...")
                 fields_report = FieldsReport(xl_file)
