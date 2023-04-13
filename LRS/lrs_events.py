@@ -38,7 +38,7 @@ class LrsEventForm:
 
         field_info = field_info_df.to_dict('records')
 
-        # TODO: Translate field types
+        # TODO: Translate field types into types recognized by AddField GP tool
 
         return field_info
 
