@@ -21,9 +21,6 @@ class LrsEventForm:
         self.event_field = self.get_event_field()
 
     def get_event_field(self):
-        # TODO: Change this to 'get Event Field', and set as instance attribute
-
-        # Add Event-specific field
         # Event field is the first row after LOCERROR
         # Get index of row with LOCERROR
         locerror_idx = self.df["FieldName"].tolist().index("LOCERROR")
