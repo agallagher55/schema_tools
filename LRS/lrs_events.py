@@ -1,20 +1,10 @@
 import os
 import arcpy
 
-import numpy as np
 import pandas as pd
 
 arcpy.env.overwriteOutput = True
 arcpy.SetLogHistory(False)
-
-
-
-xl = r"T:\work\giss\monthly\202304apr\gallaga\LRS\Activity4_event_design\HRM_Activity4_event_design_28Feb2023.xlsx"
-
-workbook = pd.read_excel(xl, sheet_name=None)
-workspace = r"T:\work\giss\monthly\202304apr\gallaga\LRS\event tables Pro\Default.gdb"
-lrs_routes = r"T:\work\giss\monthly\202304apr\gallaga\LRS\event tables Pro\Default.gdb\TRNLRS\LRSN_Route"
-
 
 class LrsEventForm:
 
@@ -93,71 +83,78 @@ def add_editor_tracking_fields(feature):
             arcpy.AddField_management(feature, field, field_type, "", "", field_length, field_alias)
 
 
-if arcpy.CheckExtension('LocationReferencing') == "Available":
-    arcpy.CheckOutExtension("LocationReferencing")
-    print("License checked out.")
+if __name__ == "__main__":
+    xl = r"T:\work\giss\monthly\202304apr\gallaga\LRS\Activity4_event_design\HRM_Activity4_event_design_28Feb2023.xlsx"
 
-for sheet_name in workbook:
-
-    if sheet_name.upper() not in [
-        "E_STREETDIRECTION",
-        "E_STREETSTATUS",
-        "E_STREETOWNERSHIP",
-        "E_STREETCLASS"
-    ]:
-        continue
-
-    print(f"\n{sheet_name.upper()}")
-
-    # df = workbook[sheet_name]
-    lrs_form = LrsEventForm(xl, sheet_name)
-    form_field_info = lrs_form.field_info()
-
-    event_name = sheet_name
-    output_feature = os.path.join(workspace, "TRNLRS", event_name)
-
-    if not arcpy.Exists(output_feature):
-        try:
-            lrs_event = arcpy.locref.CreateLRSEvent(
-                    parent_network=lrs_routes,
-                    event_name=event_name,
-                    geometry_type="LINE",
-                    event_id_field="EventId",
-                    route_id_field="RouteId",
-                    from_date_field="FromDate",
-                    to_date_field="ToDate",
-                    loc_error_field="LocError",
-                    measure_field="FromMeasure",
-                    to_measure_field="ToMeasure",
-                    event_spans_routes="NO_SPANS_ROUTES",
-                )[0]
-
-            print(arcpy.GetMessages())
-
-        except arcpy.ExecuteError:
-            print(arcpy.GetMessages(2))
-
-    # Add fields
-    for info in form_field_info:
-        field_name = info["FieldName"]
-        if field_name not in LrsEventForm.standard_fields:
-            print(f"Adding field '{field_name}'...")
-
-            arcpy.AddField_management(
-                output_feature,
-                field_name=field_name,
-                field_type="TEXT" if "Date" not in info['Type (or Domain)'] else "DATE",
-                field_precision="",
-                field_scale="",
-                field_length=info["Length"],
-                field_alias=info["Alias"],
-                field_is_nullable="NULLABLE",
-                field_domain=""
-            )
-
-    # Add Editor Tracking Fields
-    # add_editor_tracking_fields(output_feature)  # TODO: Decide if want to explicitly do this or do this via form
-
-    # Add GlobalIDs
-    print("Adding GlobalIDs...")
-    arcpy.AddGlobalIDs_management(output_feature)
+    workbook = pd.read_excel(xl, sheet_name=None)
+    workspace = r"T:\work\giss\monthly\202304apr\gallaga\LRS\event tables Pro\Default.gdb"
+    lrs_routes = r"T:\work\giss\monthly\202304apr\gallaga\LRS\event tables Pro\Default.gdb\TRNLRS\LRSN_Route"
+    
+    if arcpy.CheckExtension('LocationReferencing') == "Available":
+        arcpy.CheckOutExtension("LocationReferencing")
+        print("License checked out.")
+    
+    for sheet_name in workbook:
+    
+        if sheet_name.upper() not in [
+            "E_STREETDIRECTION",
+            "E_STREETSTATUS",
+            "E_STREETOWNERSHIP",
+            "E_STREETCLASS"
+        ]:
+            continue
+    
+        print(f"\n{sheet_name.upper()}")
+    
+        # df = workbook[sheet_name]
+        lrs_form = LrsEventForm(xl, sheet_name)
+        form_field_info = lrs_form.field_info()
+    
+        event_name = sheet_name
+        output_feature = os.path.join(workspace, "TRNLRS", event_name)
+    
+        if not arcpy.Exists(output_feature):
+            try:
+                lrs_event = arcpy.locref.CreateLRSEvent(
+                        parent_network=lrs_routes,
+                        event_name=event_name,
+                        geometry_type="LINE",
+                        event_id_field="EventId",
+                        route_id_field="RouteId",
+                        from_date_field="FromDate",
+                        to_date_field="ToDate",
+                        loc_error_field="LocError",
+                        measure_field="FromMeasure",
+                        to_measure_field="ToMeasure",
+                        event_spans_routes="NO_SPANS_ROUTES",
+                    )[0]
+    
+                print(arcpy.GetMessages())
+    
+            except arcpy.ExecuteError:
+                print(arcpy.GetMessages(2))
+    
+        # Add fields
+        for info in form_field_info:
+            field_name = info["FieldName"]
+            if field_name not in LrsEventForm.standard_fields:
+                print(f"Adding field '{field_name}'...")
+    
+                arcpy.AddField_management(
+                    output_feature,
+                    field_name=field_name,
+                    field_type="TEXT" if "Date" not in info['Type (or Domain)'] else "DATE",
+                    field_precision="",
+                    field_scale="",
+                    field_length=info["Length"],
+                    field_alias=info["Alias"],
+                    field_is_nullable="NULLABLE",
+                    field_domain=""
+                )
+    
+        # Add Editor Tracking Fields
+        # add_editor_tracking_fields(output_feature)  # TODO: Decide if want to explicitly do this or do this via form
+    
+        # Add GlobalIDs
+        print("Adding GlobalIDs...")
+        arcpy.AddGlobalIDs_management(output_feature)
