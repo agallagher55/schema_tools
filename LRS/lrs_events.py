@@ -6,6 +6,7 @@ import pandas as pd
 arcpy.env.overwriteOutput = True
 arcpy.SetLogHistory(False)
 
+
 class LrsEventForm:
 
     standard_fields = ("OBJECTID", "FROMDATE", "TODATE", "EVENTID", "ROUTEID", "LOCERROR", "SHAPE")
