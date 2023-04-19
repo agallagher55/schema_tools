@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
                 if unfound_domains:
                     PC_NAME = environ['COMPUTERNAME']
-                    prod_sde = config.get("SERVER", "prod_rw") if "APP" in PC_NAME else config.get("SERVER", "prod_rw")
+                    prod_sde = config.get("SERVER", "prod_rw") if "APP" in PC_NAME else config.get("LOCAL", "prod_rw")
 
                     domains.transfer_domains(
                         list(ADD_CODE_VALUES.keys()),
