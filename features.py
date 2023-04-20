@@ -34,20 +34,22 @@ def transfer_features(features: list, output_workspace: str) -> list:
     return out_features
 
 
-def remove_domain(feature: str, field: str) -> str:
+def remove_domain(feature: str, fields: list) -> str:
 
     """
-    The remove_domain function removes a domain from the specified field in the specified feature class.
-
-    :param feature: Specify the feature class that will have a domain removed from it
-    :param field: Specify the field from which to remove the domain
-    :return: The feature class with the domain removed from the field
+    The remove_domain function removes the domain assigned to fields in the 'feature' feature.
+    
+    :param feature: str: Specify the feature class that will have its domain removed
+    :param fields: list: Pass a list of fields to the remove_domain function
+    :return: The feature class
     """
-
-    print(f"\nRemoving domain assigned to '{field}' field in the '{feature}' feature...")
-    arcpy.RemoveDomainFromField_management(
-        in_table=feature,
-        field_name=field
-    )
+    
+    print(f"\nRemoving domain assigned to fields in the '{feature}' feature...")
+    
+    for field in fields:
+        arcpy.RemoveDomainFromField_management(
+            in_table=feature,
+            field_name=field
+        )
 
     return feature
