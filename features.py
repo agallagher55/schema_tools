@@ -2,7 +2,7 @@ import arcpy
 import os
 
 
-def transfer_features(features: list, output_workspace: str):
+def transfer_features(features: list, output_workspace: str) -> list:
 
     """
     The transfer_features function takes a list of features and an output workspace as arguments.
@@ -11,7 +11,6 @@ def transfer_features(features: list, output_workspace: str):
     :param features: list: Pass in the list of features that are to be transferred
     :param output_workspace: str: Specify the workspace where the features will be copied to
     :return: A list of the copied features
-
     """
 
     out_features = list()
@@ -33,3 +32,22 @@ def transfer_features(features: list, output_workspace: str):
             out_features.append(out_feature)
 
     return out_features
+
+
+def remove_domain(feature: str, field: str) -> str:
+
+    """
+    The remove_domain function removes a domain from the specified field in the specified feature class.
+
+    :param feature: Specify the feature class that will have a domain removed from it
+    :param field: Specify the field from which to remove the domain
+    :return: The feature class with the domain removed from the field
+    """
+
+    print(f"\nRemoving domain assigned to '{field}' field in the '{feature}' feature...")
+    arcpy.RemoveDomainFromField_management(
+        in_table=feature,
+        field_name=field
+    )
+
+    return feature
