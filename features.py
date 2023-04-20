@@ -38,14 +38,14 @@ def remove_domain(feature: str, fields: list) -> str:
 
     """
     The remove_domain function removes the domain assigned to fields in the 'feature' feature.
-    
+
     :param feature: str: Specify the feature class that will have its domain removed
     :param fields: list: Pass a list of fields to the remove_domain function
     :return: The feature class
     """
-    
+
     print(f"\nRemoving domain assigned to fields in the '{feature}' feature...")
-    
+
     for field in fields:
         arcpy.RemoveDomainFromField_management(
             in_table=feature,
