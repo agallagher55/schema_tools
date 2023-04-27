@@ -17,18 +17,21 @@ config.read('config.ini')
 CURRENT_DIR = getcwd()
 
 ADD_CODE_VALUES = {
-    "LND_zoning_HPSBB": {
-        "R-1B": "R-1B",
-        "R-1C": "R-1C",
+    "TRN_sectrav_assetcode": {
+        "GHBDW": "Boardwalk Representation",
+        "GHPDB": "Pedestrian Bridge Representation",
+        "GHPTH": "Non Existent Pathway",
+        "GHSDW": "Non Existent Sidewalk",
+        "GHSTP": "Step Delineation",
     },
 
 }
 
 REMOVE_CODE_VALUES = {
-    "LND_zoning_HPSBB":
-        {
-            "R-1b": "R-1b"
-        },
+    # "LND_zoning_HPSBB":
+    #     {
+    #         "R-1b": "R-1b"
+    #     },
     }
 
 
@@ -36,14 +39,14 @@ if __name__ == "__main__":
     local_gdb = utils.create_fgdb(CURRENT_DIR)
 
     for dbs in [
-        # [local_gdb, ],
+        [local_gdb, ],
         # [config.get("SERVER", "dev_rw"), config.get("SERVER", "dev_ro"), config.get("SERVER", "dev_web_ro_gdb")],
         # [
         #     config.get("SERVER", "qa_rw"),
         #     config.get("SERVER", "qa_ro"),
         #     config.get("SERVER", "qa_web_ro_gdb")
         # ],
-        [config.get("SERVER", "prod_rw"), config.get("SERVER", "prod_ro"), config.get("SERVER", "prod_web_ro_gdb")],
+        # [config.get("SERVER", "prod_rw"), config.get("SERVER", "prod_ro"), config.get("SERVER", "prod_web_ro_gdb")],
     ]:
 
         print(f"\nProcessing dbs: {', '.join(dbs)}...")
@@ -85,5 +88,5 @@ if __name__ == "__main__":
                 for count, code_value in enumerate(add_code_values, start=1):
                     new_value = add_code_values[code_value]
 
-                    print(f"{count}/{len(add_code_values)})")
+                    print(f"\n{count}/{len(add_code_values)})")
                     domains.add_code_value(db, domain, code_value, new_value)
