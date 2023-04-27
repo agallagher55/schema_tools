@@ -3,6 +3,13 @@ import functools
 
 
 def arcpy_messages(func):
+    """
+    The arcpy_messages function is a decorator that prints out the messages from ArcPy.
+
+    :param func: Pass in the function that is being decorated
+    :return: A wrapper function that is used to decorate the input function
+    """
+    
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         try:
