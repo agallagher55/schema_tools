@@ -36,7 +36,7 @@ REMOVE_CODE_VALUES = {
 
 if __name__ == "__main__":
     local_gdb = utils.create_fgdb(CURRENT_DIR)
-    
+
     PC_NAME = environ['COMPUTERNAME']
     run_from = "SERVER" if "APP" in PC_NAME else "LOCAL"
 
@@ -44,11 +44,11 @@ if __name__ == "__main__":
         # [local_gdb, ],
         [config.get(run_from, "dev_rw"), config.get(run_from, "dev_ro"), config.get(run_from, "dev_web_ro_gdb")],
         # [
-        #     config.get("SERVER", "qa_rw"),
-        #     config.get("SERVER", "qa_ro"),
-        #     config.get("SERVER", "qa_web_ro_gdb")
+        #     config.get(run_from, "qa_rw"),
+        #     config.get(run_from, "qa_ro"),
+        #     config.get(run_from, "qa_web_ro_gdb")
         # ],
-        # [config.get("SERVER", "prod_rw"), config.get("SERVER", "prod_ro"), config.get("SERVER", "prod_web_ro_gdb")],
+        # [config.get(run_from, "prod_rw"), config.get(run_from, "prod_ro"), config.get(run_from, "prod_web_ro_gdb")],
     ]:
 
         print(f"\nProcessing dbs: {', '.join(dbs)}...")
