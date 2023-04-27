@@ -13,15 +13,14 @@ arcpy.SetLogHistory(False)
 config = ConfigParser()
 config.read('config.ini')
 
-
 CURRENT_DIR = getcwd()
 
 ADD_CODE_VALUES = {
     "TRN_sectrav_assetcode": {
         "GHBDW": "Boardwalk Representation",
         "GHPDB": "Pedestrian Bridge Representation",
-        "GHPTH": "Non Existent Pathway",
-        "GHSDW": "Non Existent Sidewalk",
+        "GHPTH": "Non-Existent Pathway",
+        "GHSDW": "Non-Existent Sidewalk",
         "GHSTP": "Step Delineation",
     },
 
@@ -37,10 +36,13 @@ REMOVE_CODE_VALUES = {
 
 if __name__ == "__main__":
     local_gdb = utils.create_fgdb(CURRENT_DIR)
+    
+    PC_NAME = environ['COMPUTERNAME']
+    run_from = "SERVER" if "APP" in PC_NAME else "LOCAL"
 
     for dbs in [
-        [local_gdb, ],
-        # [config.get("SERVER", "dev_rw"), config.get("SERVER", "dev_ro"), config.get("SERVER", "dev_web_ro_gdb")],
+        # [local_gdb, ],
+        [config.get(run_from, "dev_rw"), config.get(run_from, "dev_ro"), config.get(run_from, "dev_web_ro_gdb")],
         # [
         #     config.get("SERVER", "qa_rw"),
         #     config.get("SERVER", "qa_ro"),
@@ -60,7 +62,6 @@ if __name__ == "__main__":
                 domain_present, unfound_domains = domains.domains_in_db(local_gdb, list(ADD_CODE_VALUES.keys()))
 
                 if unfound_domains:
-                    PC_NAME = environ['COMPUTERNAME']
                     prod_sde = config.get("SERVER", "prod_rw") if "APP" in PC_NAME else config.get("LOCAL", "prod_rw")
 
                     domains.transfer_domains(
