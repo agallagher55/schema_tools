@@ -208,6 +208,18 @@ class Feature:
 
     @arcpy_messages
     def add_editor_tracking_fields(self, field_info=EDITOR_TRACKING_FIELD_INFO):
+        """    
+        The enable_editor_tracking function enables editor tracking on a feature class.
+        
+        :param creator_field: str: Specify the field that will store the name of the user who created a record
+        :param creation_date_field: str: Specify the name of the field that will store creation dates
+        :param last_editor_field: str: Define the field name that will be used to store the user who last edited a feature
+        :param last_edit_date_field: str: Determine the field name that will store the last edit date
+        :param add_fields: str: Determine whether or not to add the fields
+        :param record_dates_in: str: Specify the time zone in which to record dates
+        :return: A boolean value
+        """
+        
         print(f"\nAdding Editor Tracking fields to '{self.feature}'...")
 
         for field in field_info:
