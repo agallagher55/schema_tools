@@ -55,7 +55,7 @@ def sync_replicas(replica_name: str, rw_sde: str, ro_sde: str):
     :return:
     """
 
-    print(f"\nSynchronizing changes between replicas, '{replica_name}'...")
+    print(f"\nSynchronizing changes between '{replica_name}' replicas, from {rw_sde} to {ro_sde}...")
     arcpy.SynchronizeChanges_management(
         geodatabase_1=rw_sde,
         in_replica=replica_name,
