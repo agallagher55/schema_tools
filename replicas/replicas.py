@@ -1,4 +1,5 @@
 import arcpy
+import os
 
 REPLICAS = [
     'ADM_Rosde',
@@ -105,7 +106,7 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
     :return:
     """
 
-    add_features = list(set(add_features))
+    add_features = list(set([os.path.basename(x) for x in add_features]))
 
     replica_name = replica_name.replace("SDEADM.", "")
     sde_replica_name = f"SDEADM.{replica_name}"
@@ -184,7 +185,6 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
                 )
 
         print(f"\nCreating replica: '{sde_replica_name}' with features: {', '.join(add_features)}...'")
-
         arcpy.CreateReplica_management(
             in_data=add_features,
             in_type="ONE_WAY_REPLICA",
@@ -203,6 +203,7 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
             out_type="GEODATABASE",
             out_xml=None
         )
+        print(arcpy.GetMessages())
 
         # Write updated replica list to txtfile
         replica_file_name = f"{replica_name}_updated.txt"
