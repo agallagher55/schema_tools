@@ -33,17 +33,19 @@ new_field_info = {
 
 if __name__ == "__main__":
     local_gdb = utils.create_fgdb(CURRENT_DIR)
+    
+    # TODO: Add to WEBGIS? web_ro?
 
     for dbs in [
-        [local_gdb],
+        # [local_gdb],
         # [
         #     config.get("SERVER", "dev_rw"),
         #     config.get("SERVER", "dev_ro"),
         #  ],
-        # [
-        #     config.get("SERVER", "qa_rw"),
-        #     config.get("SERVER", "qa_ro")
-        # ],
+        [
+            config.get("SERVER", "qa_rw"),
+            config.get("SERVER", "qa_ro")
+        ],
         # [
         #     config.get("SERVER", "prod_rw"),
         #     config.get("SERVER", "prod_ro")
@@ -71,13 +73,13 @@ if __name__ == "__main__":
                 # TODO: Stop services
 
                 for field in new_field_info:
-                    print(f"\tField to add: {field}")
+                    print(f"\nField to add: '{field}'")
 
                     # Check that field doesn't already exist
 
                     if field in current_fields:
                         print(f"Field, {field} already exists in {FEATURE}..!")
-                        # continue
+                        continue
 
                     my_feature.add_field(
                         field_name=field,
