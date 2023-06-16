@@ -2,7 +2,6 @@ import arcpy
 import os
 import functools
 
-
 arcpy.env.overwriteOutput = True
 
 EDITOR_TRACKING_FIELD_INFO = {
@@ -50,7 +49,7 @@ def arcpy_messages(func):
 
 
 class Feature:
-    def __init__(self, workspace, feature_name: str, geometry_type, spatial_reference, alias: str = "#"):
+    def __init__(self, workspace, feature_name: str, geometry_type, spatial_reference=None, alias: str = "#"):
         self.workspace = workspace
         self.feature_name = feature_name
         self.geometry_type = geometry_type
@@ -82,6 +81,9 @@ class Feature:
             )
 
         else:
+            if not self.spatial_reference:
+                raise ValueError(f"Please provide a spatial reference for this feature class.")
+            
             arcpy.CreateFeatureclass_management(
                 out_path=self.workspace,
                 out_name=self.feature_name,
@@ -210,7 +212,7 @@ class Feature:
     def add_editor_tracking_fields(self, field_info=EDITOR_TRACKING_FIELD_INFO):
         """    
         The enable_editor_tracking function enables editor tracking on a feature class.
-        
+
         :param creator_field: str: Specify the field that will store the name of the user who created a record
         :param creation_date_field: str: Specify the name of the field that will store creation dates
         :param last_editor_field: str: Define the field name that will be used to store the user who last edited a feature
@@ -219,7 +221,7 @@ class Feature:
         :param record_dates_in: str: Specify the time zone in which to record dates
         :return: A boolean value
         """
-        
+
         print(f"\nAdding Editor Tracking fields to '{self.feature}'...")
 
         for field in field_info:
