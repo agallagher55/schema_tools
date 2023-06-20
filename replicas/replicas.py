@@ -215,8 +215,8 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
 
 if __name__ == "__main__":
 
-    # dev_rw = r"E:\HRM\Scripts\SDE\dev_RW_sdeadm.sde"
-    # dev_ro = r"E:\HRM\Scripts\SDE\dev_RO_sdeadm.sde"
+    dev_rw = r"E:\HRM\Scripts\SDE\dev_RW_sdeadm.sde"
+    dev_ro = r"E:\HRM\Scripts\SDE\dev_RO_sdeadm.sde"
 
     qa_rw = r"E:\HRM\Scripts\SDE\qa_RW_sdeadm.sde"
     qa_ro = r"E:\HRM\Scripts\SDE\qa_RO_sdeadm.sde"
@@ -225,8 +225,8 @@ if __name__ == "__main__":
     # prod_ro = r"E:\HRM\Scripts\SDE\prod_RO_sdeadm.sde"
 
     for rw_sde, ro_sde in (
-            # (dev_rw, dev_ro),
-            (qa_rw, qa_ro),
+            (dev_rw, dev_ro),
+            # (qa_rw, qa_ro),
     ):
 
         replica_name = "LND_Rosde"
@@ -242,13 +242,14 @@ if __name__ == "__main__":
                 txtfile.write(f"{feature}\n")
 
         new_features = [
-            "SDEADM.LND_PPLC_Permit_Info",
-            'SDEADM.LND_PPLC_Building_Permits',
-            'SDEADM.LND_PPLC_Construction_Permits',
-            'SDEADM.LND_PPLC_Engineering_Permits',
-            'SDEADM.LND_PPLC_HW_Permits',
-            'SDEADM.LND_PPLC_LU_Approval_Permits',
-            'SDEADM.LND_PPLC_PW_ROW_Permits',
+            # "SDEADM.LND_PPLC_Permit_Info",
+            # 'SDEADM.LND_PPLC_Building_Permits',
+            # 'SDEADM.LND_PPLC_Construction_Permits',
+            # 'SDEADM.LND_PPLC_Engineering_Permits',
+            # 'SDEADM.LND_PPLC_HW_Permits',
+            # 'SDEADM.LND_PPLC_LU_Approval_Permits',
+            # 'SDEADM.LND_PPLC_PW_ROW_Permits',
+            "SDEADM.LND_PPLC_Permits",
         ]
 
         all_features = replica_features + new_features
@@ -260,3 +261,7 @@ if __name__ == "__main__":
             add_features=all_features,
             topology_dataset=False
         )
+
+        # CHECKS
+        # RW is Versioned
+        # RW & RO have GlobalIDs
