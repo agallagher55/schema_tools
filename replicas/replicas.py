@@ -39,11 +39,11 @@ class Replica:
         self.name = name
         self.workspace = workspace
 
-        self.replica = [x for x in arcpy.da.ListReplicas(dev_ro) if x.name == f"SDEADM.{self.name}"][0]
+        self.replicas = [x for x in arcpy.da.ListReplicas(qa_ro) if x.name == f"SDEADM.{self.name}"][0]
         self.datasets = self.datasets()
 
     def datasets(self):
-        datasets = self.replica.datasets
+        datasets = self.replicas.datasets
         return sorted(datasets)
 
 
@@ -215,34 +215,46 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
 
 if __name__ == "__main__":
 
-    dev_rw = r"E:\HRM\Scripts\SDE\dev_RW_sdeadm.sde"
-    dev_ro = r"E:\HRM\Scripts\SDE\dev_RO_sdeadm.sde"
+    # dev_rw = r"E:\HRM\Scripts\SDE\dev_RW_sdeadm.sde"
+    # dev_ro = r"E:\HRM\Scripts\SDE\dev_RO_sdeadm.sde"
 
     qa_rw = r"E:\HRM\Scripts\SDE\qa_RW_sdeadm.sde"
     qa_ro = r"E:\HRM\Scripts\SDE\qa_RO_sdeadm.sde"
 
-    prod_rw = r"E:\HRM\Scripts\SDE\prod_RW_sdeadm.sde"
-    prod_ro = r"E:\HRM\Scripts\SDE\prod_RO_sdeadm.sde"
+    # prod_rw = r"E:\HRM\Scripts\SDE\prod_RW_sdeadm.sde"
+    # prod_ro = r"E:\HRM\Scripts\SDE\prod_RO_sdeadm.sde"
 
     for rw_sde, ro_sde in (
             # (dev_rw, dev_ro),
             (qa_rw, qa_ro),
     ):
-        # my_replica = Replica("AST_Rosde", dev_ro)
 
-        # Reference text file outlining current list of features in target replica to get current replica features
-        replica_file = "replicas/LND_ro.txt"
-        with open(replica_file, "r") as txtfile:
-            replica_features = [x.strip("\n") for x in txtfile.readlines()]
+        replica_name = "LND_Rosde"
+
+        current_workspace = Workspace(rw_sde)
+        workspace_replicas = [x.name for x in current_workspace.replicas]
+
+        replica_features = Replica(replica_name, rw_sde).datasets
+
+        # Write current replica features
+        with open(f"{replica_name}.txt", "w") as txtfile:
+            for feature in sorted(list(set(replica_features))):
+                txtfile.write(f"{feature}\n")
 
         new_features = [
-            "SDEADM.LND_special_planning_areas",
+            "SDEADM.LND_PPLC_Permit_Info",
+            'SDEADM.LND_PPLC_Building_Permits',
+            'SDEADM.LND_PPLC_Construction_Permits',
+            'SDEADM.LND_PPLC_Engineering_Permits',
+            'SDEADM.LND_PPLC_HW_Permits',
+            'SDEADM.LND_PPLC_LU_Approval_Permits',
+            'SDEADM.LND_PPLC_PW_ROW_Permits',
         ]
 
         all_features = replica_features + new_features
 
         add_to_replica(
-            replica_name='LND_Rosde',
+            replica_name=replica_name,
             rw_sde=rw_sde,
             ro_sde=ro_sde,
             add_features=all_features,
