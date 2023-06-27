@@ -117,6 +117,11 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
         access_type = "FULL"
 
     print(f"\nAdding {', '.join(add_features)} to replica '{replica_name}'...")
+    
+    features_have_globalids = input("Do all your features have GlobalIDs?\n\tEnter Y, if they do, otherwise add them and try again.")
+    
+    if not features_have_globalids.upper() == "Y":
+        return
 
     with arcpy.EnvManager(workspace=ro_sde):
         # Check to see if feature exists in ro workspace
@@ -226,8 +231,8 @@ if __name__ == "__main__":
 
     for rw_sde, ro_sde in (
             # (dev_rw, dev_ro),
-            (qa_rw, qa_ro),
-            # (prod_rw, prod_ro),
+            # (qa_rw, qa_ro),
+            (prod_rw, prod_ro),
     ):
 
         replica_name = "LND_Rosde"
@@ -243,13 +248,13 @@ if __name__ == "__main__":
                 txtfile.write(f"{feature}\n")
 
         new_features = [
-            # "SDEADM.LND_PPLC_Permit_Info",
-            # 'SDEADM.LND_PPLC_Building_Permits',
-            # 'SDEADM.LND_PPLC_Construction_Permits',
-            # 'SDEADM.LND_PPLC_Engineering_Permits',
-            # 'SDEADM.LND_PPLC_HW_Permits',
-            # 'SDEADM.LND_PPLC_LU_Approval_Permits',
-            # 'SDEADM.LND_PPLC_PW_ROW_Permits',
+            "SDEADM.LND_PPLC_Permit_Info",
+            'SDEADM.LND_PPLC_Building_Permits',
+            'SDEADM.LND_PPLC_Construction_Permits',
+            'SDEADM.LND_PPLC_Engineering_Permits',
+            'SDEADM.LND_PPLC_HW_Permits',
+            'SDEADM.LND_PPLC_LU_Approval_Permits',
+            'SDEADM.LND_PPLC_PW_ROW_Permits',
             "SDEADM.LND_PPLC_Permits",
         ]
 
