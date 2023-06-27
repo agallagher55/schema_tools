@@ -144,7 +144,7 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
         replica_exists = any(x.name.upper() == sde_replica_name.upper() for x in rw_replicas)
 
         print(f"\tReplica already exists? {replica_exists}")
-        print(f"\tReplicas: {', '.join([x.name for x in rw_replicas])}")
+        print(f"\t\t(Replicas: {', '.join([x.name for x in rw_replicas])})")
 
         # Check if add_features are versioned
         for feature in add_features:
@@ -221,12 +221,13 @@ if __name__ == "__main__":
     qa_rw = r"E:\HRM\Scripts\SDE\qa_RW_sdeadm.sde"
     qa_ro = r"E:\HRM\Scripts\SDE\qa_RO_sdeadm.sde"
 
-    # prod_rw = r"E:\HRM\Scripts\SDE\prod_RW_sdeadm.sde"
-    # prod_ro = r"E:\HRM\Scripts\SDE\prod_RO_sdeadm.sde"
+    prod_rw = r"E:\HRM\Scripts\SDE\prod_RW_sdeadm.sde"
+    prod_ro = r"E:\HRM\Scripts\SDE\prod_RO_sdeadm.sde"
 
     for rw_sde, ro_sde in (
-            (dev_rw, dev_ro),
-            # (qa_rw, qa_ro),
+            # (dev_rw, dev_ro),
+            (qa_rw, qa_ro),
+            # (prod_rw, prod_ro),
     ):
 
         replica_name = "LND_Rosde"
