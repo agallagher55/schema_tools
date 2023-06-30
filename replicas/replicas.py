@@ -39,7 +39,7 @@ class Replica:
         self.name = name
         self.workspace = workspace
 
-        self.replicas = [x for x in arcpy.da.ListReplicas(qa_ro) if x.name == f"SDEADM.{self.name}"][0]
+        self.replicas = [x for x in arcpy.da.ListReplicas(workspace) if x.name == f"SDEADM.{self.name}"][0]
         self.datasets = self.datasets()
 
     def datasets(self):
@@ -117,9 +117,10 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
         access_type = "FULL"
 
     print(f"\nAdding {', '.join(add_features)} to replica '{replica_name}'...")
-    
-    features_have_globalids = input("Do all your features have GlobalIDs?\n\tEnter Y, if they do, otherwise add them and try again.")
-    
+
+    features_have_globalids = input(
+        "Do all your features have GlobalIDs?\n\tEnter Y, if they do, otherwise add them and try again.")
+
     if not features_have_globalids.upper() == "Y":
         return
 
