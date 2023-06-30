@@ -1,5 +1,5 @@
 """
-Get a dictionary of replica names and the features in the replicas
+Get a dictionary of Oracle replica names and the features in the replicas
 --> export to json
 """
 
@@ -29,7 +29,7 @@ if __name__ == "__main__":
             replica_obj = replicas.Replica(replica, sde_workspace)
             replica_features = replica_obj.datasets
 
-            print(replica_features)
+            print(f"\t{', '.join(replica_features)}")
             replica_data[replica] = replica_features
 
         except IndexError as e:
