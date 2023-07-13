@@ -137,8 +137,6 @@ class Feature:
         # else:
         #     field_precision = "#"  # int
 
-        print(f"\nAdding Field: '{field_name}'...")
-
         arcpy.AddField_management(
             in_table=self.feature,
             field_name=field_name,  # Field Name
