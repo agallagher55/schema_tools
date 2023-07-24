@@ -397,5 +397,6 @@ if __name__ == "__main__":
     # Privileges assigned
     # Versioned
     # Editor Tracking
+    # Features in RO, WEB_RO
     
     # Add to CMDB
