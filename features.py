@@ -268,15 +268,19 @@ class Feature:
         print(f"\nAssigning default value of '{default_value}' to {field}...")
 
         # Check if field already has default applied.
-        current_default = field.defaultValue
-        if current_default == default_value:
-            return default_value
-
-        arcpy.AssignDefaultToField_management(
-            in_table=self.feature,
-            field_name=field,
-            default_value=default_value
-        )
+        try:
+            current_default = [x.defaultValue for x in arcpy.ListFields(self.feature) if x.name == field][0]
+            if current_default == default_value:
+                return default_value
+    
+            arcpy.AssignDefaultToField_management(
+                in_table=self.feature,
+                field_name=field,
+                default_value=default_value
+            )
+        except IndexError as e:
+            print(e)
+            print(f"Did not find {field} in {self.feature_name}")
 
     @arcpy_messages
     def assign_domain(self, field_name, domain_name, subtypes="#"):
