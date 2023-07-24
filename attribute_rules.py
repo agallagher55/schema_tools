@@ -96,7 +96,7 @@ def add_sequence_rule(workspace, feature_name, field_name, sequence_prefix=""):
     except arcpy.ExecuteError:
         print(arcpy.GetMessages(2))
 
-    try:
+    finally:
         print(f"\tCreating db sequence {field_name}...")
         arcpy.CreateDatabaseSequence_management(
             in_workspace=workspace,
@@ -104,9 +104,6 @@ def add_sequence_rule(workspace, feature_name, field_name, sequence_prefix=""):
             seq_start_id=1,
             seq_inc_value=1
         )
-
-    except arcpy.ExecuteError as e:
-        print(f"ARCPY ERROR: {e}")
 
     print("\tAdding Attribute Rule...")
     print(f"\t\tExpression: {expression}")
