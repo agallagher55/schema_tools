@@ -74,14 +74,14 @@ if __name__ == "__main__":
 
     for dbs in [
         # [local_gdb],
-        [
-            config.get("SERVER", "dev_rw"),
-            config.get("SERVER", "dev_ro"),
-        ],
         # [
-        #     config.get("SERVER", "qa_rw"),  # qa_ro, qa_web_ro will get copied to db when processing rw
-        #     config.get("SERVER", "qa_web_ro_gdb"),
+        #     config.get("SERVER", "dev_rw"),
+        #     config.get("SERVER", "dev_ro"),
         # ],
+        [
+            config.get("SERVER", "qa_rw"),  # qa_ro, qa_web_ro will get copied to db when processing rw
+            config.get("SERVER", "qa_web_ro_gdb"),
+        ],
         # [
         #     config.get("SERVER", "prod_rw"),  # qa_ro, qa_web_ro will get copied to db when processing rw
         #     config.get("SERVER", "prod_web_ro_gdb"),
@@ -244,7 +244,7 @@ if __name__ == "__main__":
                             if default_value:
                                 new_feature.add_field_default(
                                     field=field_name,
-                                    value=default_value
+                                    default_value=default_value
                                 )
 
                     # ADD GLOBAL IDS
@@ -398,5 +398,5 @@ if __name__ == "__main__":
     # Versioned
     # Editor Tracking
     # Features in RO, WEB_RO
-    
+
     # Add to CMDB
