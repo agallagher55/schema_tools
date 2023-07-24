@@ -107,10 +107,13 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
     """
 
     # Check for GlobalIDs
-    features_have_globalids = [any(x.name.upper() == "GLOBALID" for x in arcpy.ListFields(feature)) for feature in add_features]
+    for workspace in rw_sde, ro_sde:
+        
+        with arcpy.EnvManager(workspace=workspace):
+            features_have_globalids = [any(x.name.upper() == "GLOBALID" for x in arcpy.ListFields(feature)) for feature in add_features]
 
-    if not features_have_globalids:
-        return False
+            if not features_have_globalids:
+                return False
 
     add_features = list(set([os.path.basename(x) for x in add_features]))
 
@@ -231,12 +234,12 @@ if __name__ == "__main__":
     prod_ro = r"E:\HRM\Scripts\SDE\prod_RO_sdeadm.sde"
 
     for rw_sde, ro_sde in (
-            # (dev_rw, dev_ro),
+            (dev_rw, dev_ro),
             # (qa_rw, qa_ro),
-            (prod_rw, prod_ro),
+            # (prod_rw, prod_ro),
     ):
 
-        replica_name = "LND_Rosde"
+        replica_name = "TRN_Rosde"
 
         current_workspace = Workspace(rw_sde)
         workspace_replicas = [x.name for x in current_workspace.replicas]
@@ -249,14 +252,9 @@ if __name__ == "__main__":
                 txtfile.write(f"{feature}\n")
 
         new_features = [
-            "SDEADM.LND_PPLC_Permit_Info",
-            'SDEADM.LND_PPLC_Building_Permits',
-            'SDEADM.LND_PPLC_Construction_Permits',
-            'SDEADM.LND_PPLC_Engineering_Permits',
-            'SDEADM.LND_PPLC_HW_Permits',
-            'SDEADM.LND_PPLC_LU_Approval_Permits',
-            'SDEADM.LND_PPLC_PW_ROW_Permits',
-            "SDEADM.LND_PPLC_Permits",
+            "SDEADM.TRN_RTS_routes",
+            'SDEADM.TRN_RTS_walksheds',
+            'SDEADM.TRN_RTS_stops',
         ]
 
         all_features = replica_features + new_features
