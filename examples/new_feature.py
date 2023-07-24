@@ -42,7 +42,7 @@ IMMUTABLE_FIELDS = {
 
 if __name__ == "__main__":
     READY_TO_ADD_TO_REPLICA = True
-    REPLICA_NAME = 'LND_Rosde'  # Do not need to include SDEADM
+    REPLICA_NAME = 'TRN_Rosde'  # Do not need to include SDEADM
 
     SUBTYPES = False
     TOPOLOGY_DATASET = False
@@ -297,7 +297,7 @@ if __name__ == "__main__":
                                     )[0]
 
                                 else:
-                                    feature = arcpy.conversion.FeatureClassToFeatureClass(
+                                    feature = arcpy.FeatureClassToFeatureClass_conversion(
                                         in_features=new_feature.feature,
                                         out_path=ro_db,
                                         out_name=new_feature.feature_name,
@@ -388,3 +388,14 @@ if __name__ == "__main__":
                                 arcpy_msg = arcpy.GetMessages(2)
                                 print(arcpy_msg)
 
+    # Checks:
+    # Replicas
+    # Indexes
+    # Attribute Rules
+    # Default values
+    # Domains
+    # Privileges assigned
+    # Versioned
+    # Editor Tracking
+    
+    # Add to CMDB
