@@ -106,6 +106,12 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
     :return:
     """
 
+    # Check for GlobalIDs
+    features_have_globalids = [any(x.name.upper() == "GLOBALID" for x in arcpy.ListFields(feature)) for feature in add_features]
+
+    if not features_have_globalids:
+        return False
+
     add_features = list(set([os.path.basename(x) for x in add_features]))
 
     replica_name = replica_name.replace("SDEADM.", "")
@@ -117,12 +123,6 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
         access_type = "FULL"
 
     print(f"\nAdding {', '.join(add_features)} to replica '{replica_name}'...")
-
-    # Check for GlobalIDs
-    features_have_globalids = [any(x.name.upper() == "GLOBALID" for x in arcpy.ListFields(feature)) for feature in add_features]
-
-    if not features_have_globalids:
-        return False
 
     with arcpy.EnvManager(workspace=ro_sde):
         # Check to see if feature exists in ro workspace
