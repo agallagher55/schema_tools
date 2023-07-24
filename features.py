@@ -264,18 +264,18 @@ class Feature:
         arcpy.AddGlobalIDs_management(self.feature)
 
     @arcpy_messages
-    def add_field_default(self, field: str, value):
-        print(f"\nAssigning default value of '{value}' to {field}...")
+    def add_field_default(self, field: str, default_value):
+        print(f"\nAssigning default value of '{default_value}' to {field}...")
 
         # Check if field already has default applied.
-        current_defaut = field.defaultValue
-        if current_defaut == value:
-            return value
+        current_default = field.defaultValue
+        if current_default == default_value:
+            return default_value
 
         arcpy.AssignDefaultToField_management(
             in_table=self.feature,
             field_name=field,
-            default_value=value
+            default_value=default_value
         )
 
     @arcpy_messages
