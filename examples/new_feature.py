@@ -41,8 +41,8 @@ IMMUTABLE_FIELDS = {
 
 
 if __name__ == "__main__":
-    READY_TO_ADD_TO_REPLICA = False
-    REPLICA_NAME = 'AST_Rosde'  # Do not need to include SDEADM
+    READY_TO_ADD_TO_REPLICA = True
+    REPLICA_NAME = 'LND_Rosde'  # Do not need to include SDEADM
 
     SUBTYPES = False
     TOPOLOGY_DATASET = False
@@ -50,16 +50,22 @@ if __name__ == "__main__":
     SUBTYPE_FIELD = ""
     SUBTYPE_DOMAINS = {}
 
-    sdsf = "../Spatial Data Forms/Future_ferry_routes_GIS_Design_AuthorityV2.xlsx"
-    sdsf_2 = "../Spatial Data Forms/MFTP_transit_network_GIS_Design_AuthorityV2.xlsx"
-    sdsf_3 = "../Spatial Data Forms/Planned_BRT_routes_GIS_Design_AuthorityV2.xlsx"
+    sdsf = "../Spatial Data Forms/SDSform_RTS_routes.xlsx"
+    sdsf_2 = "../Spatial Data Forms/SDSform_RTS_stations.xlsx"
+    sdsf_3 = "../Spatial Data Forms/SDSform_RTS_walksheds.xlsx"
 
     sheet_name = "DATASET DETAILS"
 
     unique_id_fields = {
-        # 'AST_FLAG': [
-        #     {"field": "FLAGID", "prefix": "FLG"},
-        # ]
+        'TRN_RTS_routes': [
+            {"field": "RTS_ID", "prefix": "RTS"},
+        ],
+        'TRN_RTS_walksheds': [
+            {"field": "RTS_WSD_ID", "prefix": "WSD"},
+        ],
+        'TRN_RTS_stops': [
+            {"field": "RTS_STP_ID", "prefix": "STN"},
+        ],
     }
 
     CURRENT_DIR = os.getcwd()
@@ -67,11 +73,11 @@ if __name__ == "__main__":
     local_gdb = utils.create_fgdb(out_folder_path=CURRENT_DIR, out_name="scratch.gdb")
 
     for dbs in [
-        [local_gdb],
-        # [
-        #     config.get("SERVER", "dev_rw"),
-        #     config.get("SERVER", "dev_ro"),
-        # ],
+        # [local_gdb],
+        [
+            config.get("SERVER", "dev_rw"),
+            config.get("SERVER", "dev_ro"),
+        ],
         # [
         #     config.get("SERVER", "qa_rw"),  # qa_ro, qa_web_ro will get copied to db when processing rw
         #     config.get("SERVER", "qa_web_ro_gdb"),
@@ -90,9 +96,9 @@ if __name__ == "__main__":
             db_type, db_rights = connections.connection_type(db)
 
             for xl_file in [
-                # sdsf,
+                sdsf,
                 sdsf_2,
-                # sdsf_3
+                sdsf_3
             ]:
                 print(f"\nCreating feature from {xl_file}...")
                 fields_report = FieldsReport(xl_file)
@@ -276,6 +282,7 @@ if __name__ == "__main__":
 
                             # Don't need to add to WEB if feature is a table
                             if ro_db == ro_webgis_db and feature_shape.upper() == 'ENTERPRISE GEODATABASE TABLE':
+                                print(f"Feature is a table - skipping adding to WEB RO...")
                                 continue
 
                             if not arcpy.Exists(ro_feature):
@@ -298,7 +305,6 @@ if __name__ == "__main__":
 
                         if READY_TO_ADD_TO_REPLICA:
 
-                            # Add feature to replica
                             replicas.add_to_replica(
                                 replica_name=REPLICA_NAME,
                                 rw_sde=db,
@@ -381,3 +387,4 @@ if __name__ == "__main__":
                             except arcpy.ExecuteError:
                                 arcpy_msg = arcpy.GetMessages(2)
                                 print(arcpy_msg)
+
