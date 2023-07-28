@@ -63,12 +63,26 @@ def toggle_rule(rule_names: list, rule_type: str, feature, enable_disable: str):
         )
 
 
-def add_sequence_rule(workspace, feature_name, field_name, sequence_prefix=""):
+def add_sequence_rule(workspace, feature_name, field_name, sequence_prefix="", padded_sequence=False):
     print("\nAdding Sequence Attribute Rule...")
 
     rule_description = f"{os.path.basename(feature_name)} - {field_name} - Generate ID"
     expression = f"'{sequence_prefix}' + NextSequenceValue('sdeadm.{field_name}')"  # for SDE features
-    
+
+    if padded_sequence:
+        expression = f"""
+        var sequence_prefix = '{sequence_prefix}'
+        var sequence_num = NextSequenceValue('sdeadm.{field_name}')
+        
+        var add_zeros = When(
+            sequence_num < 10, "00", 
+            sequence_num >=10 && sequence_num < 100, "0", 
+            ''
+        );
+        
+        return sequence_prefix + add_zeros + sequence_num 
+"""  # for SDE features
+
     if field_name in ("ASSETID", "ASSET_ID"):
         raise ValueError(f"Sequence for {field_name} needs a different sequence name.")
 
