@@ -130,7 +130,7 @@ class DomainsReport(Report):
         # Iterate through index to domains
         for count, index_value in enumerate(self.domain_df.index):
 
-            if index_value == "Code":
+            if index_value.upper() == "CODE":
                 domain_name = self.domain_df.index[count - 1]
 
                 row_index_start = self.domain_df.index.tolist().index(domain_name)  # Domain name will precede row index with value of Code
