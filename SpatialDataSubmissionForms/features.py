@@ -30,6 +30,7 @@ EDITOR_TRACKING_FIELD_INFO = {
 
 def arcpy_messages(func):
     @functools.wraps(func)
+
     def wrapper(*args, **kwargs):
         try:
             result = func(*args, **kwargs)
@@ -264,16 +265,23 @@ class Feature:
         arcpy.AddGlobalIDs_management(self.feature)
 
     @arcpy_messages
-    def add_field_default(self, field: str, value):
-        print(f"\nAssigning default value of '{value}' to {field}...")
+    def add_field_default(self, field: str, default_value):
+        print(f"\nAssigning default value of '{default_value}' to {field}...")
 
-        # TODO: Check if field already has default applied.
+        # Check if field already has default applied.
+        try:
+            current_default = [x.defaultValue for x in arcpy.ListFields(self.feature) if x.name == field][0]
+            if current_default == default_value:
+                return default_value
 
-        arcpy.AssignDefaultToField_management(
-            in_table=self.feature,
-            field_name=field,
-            default_value=value
-        )
+            arcpy.AssignDefaultToField_management(
+                in_table=self.feature,
+                field_name=field,
+                default_value=default_value
+            )
+        except IndexError as e:
+            print(e)
+            print(f"Did not find {field} in {self.feature_name}")
 
     @arcpy_messages
     def assign_domain(self, field_name, domain_name, subtypes="#"):
