@@ -6,7 +6,6 @@ import attribute_rules
 import utils
 import replicas
 
-
 from configparser import ConfigParser
 
 from subtypes import create_subtype
@@ -41,8 +40,8 @@ IMMUTABLE_FIELDS = {
 
 
 if __name__ == "__main__":
-    READY_TO_ADD_TO_REPLICA = True
-    REPLICA_NAME = 'TRN_Rosde'  # Do not need to include SDEADM
+    READY_TO_ADD_TO_REPLICA = False
+    REPLICA_NAME = 'AST_Rosde'  # Do not need to include SDEADM
 
     SUBTYPES = False
     TOPOLOGY_DATASET = False
@@ -50,22 +49,20 @@ if __name__ == "__main__":
     SUBTYPE_FIELD = ""
     SUBTYPE_DOMAINS = {}
 
-    sdsf = "../Spatial Data Forms/SDSform_RTS_routes.xlsx"
-    sdsf_2 = "../Spatial Data Forms/SDSform_RTS_stations.xlsx"
-    sdsf_3 = "../Spatial Data Forms/SDSform_RTS_walksheds.xlsx"
+    sdsf = "../Spatial Data Forms/SDSForm_AST_EV_Charging_Station_BUapproved.xlsx"
 
     sheet_name = "DATASET DETAILS"
 
     unique_id_fields = {
-        'TRN_RTS_routes': [
-            {"field": "RTS_ID", "prefix": "RTS"},
-        ],
-        'TRN_RTS_walksheds': [
-            {"field": "RTS_WSD_ID", "prefix": "WSD"},
-        ],
-        'TRN_RTS_stops': [
-            {"field": "RTS_STP_ID", "prefix": "STN"},
-        ],
+        'AST_EV_charging_station': [
+            {"field": "EVCSID", "prefix": "EVCS"},
+            {"field": "ASSETID", "prefix": "EVCS"},
+        ]
+    }
+
+    new_domain_types = {
+        "AST_EV_op_hour": "SHORT",
+        "AST_EV_output": "LONG"
     }
 
     CURRENT_DIR = os.getcwd()
@@ -73,15 +70,15 @@ if __name__ == "__main__":
     local_gdb = utils.create_fgdb(out_folder_path=CURRENT_DIR, out_name="scratch.gdb")
 
     for dbs in [
-        # [local_gdb],
+        [local_gdb],
         # [
         #     config.get("SERVER", "dev_rw"),
-        #     config.get("SERVER", "dev_ro"),
+        #     # config.get("SERVER", "dev_ro"),
         # ],
-        [
-            config.get("SERVER", "qa_rw"),  # qa_ro, qa_web_ro will get copied to db when processing rw
-            config.get("SERVER", "qa_web_ro_gdb"),
-        ],
+        # [
+        #     config.get("SERVER", "qa_rw"),  # qa_ro, qa_web_ro will get copied to db when processing rw
+        #     config.get("SERVER", "qa_web_ro_gdb"),
+        # ],
         # [
         #     config.get("SERVER", "prod_rw"),  # qa_ro, qa_web_ro will get copied to db when processing rw
         #     config.get("SERVER", "prod_web_ro_gdb"),
@@ -97,8 +94,6 @@ if __name__ == "__main__":
 
             for xl_file in [
                 sdsf,
-                sdsf_2,
-                sdsf_3
             ]:
                 print(f"\nCreating feature from {xl_file}...")
                 fields_report = FieldsReport(xl_file)
@@ -143,8 +138,12 @@ if __name__ == "__main__":
                     # These should all be found in fields_report.field_details
 
                     for domain in new_domains:
+
                         try:
                             field_type = "TEXT"
+
+                            if domain in new_domain_types:
+                                field_type = new_domain_types.get(domain)
 
                             # Check if domain is a subtype domain
                             if SUBTYPE_DOMAINS:
@@ -153,12 +152,13 @@ if __name__ == "__main__":
                                     print("\t*Subtype Domain Found!")
 
                             print(f"\n\tCreating domain '{domain}'...")
-                            arcpy.management.CreateDomain(
+                            arcpy.CreateDomain_management(
                                 in_workspace=db,
                                 domain_name=domain,
                                 field_type=field_type,
                                 domain_type="CODED",
-                                domain_description=""
+                                domain_description="",
+                                split_policy="DUPLICATE"
                             )
                             # Sometimes this says it 'fails', but domain still gets created
 
@@ -372,7 +372,7 @@ if __name__ == "__main__":
                                 workspace=db,
                                 feature_name=new_feature.feature,
                                 field_name=id_field,
-                                sequence_prefix=prefix
+                                sequence_prefix=prefix,
                             )
 
                             print(f"\nAdding attribute index on {id_field}...")
