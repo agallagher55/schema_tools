@@ -66,13 +66,16 @@ def toggle_rule(rule_names: list, rule_type: str, feature, enable_disable: str):
 def add_sequence_rule(workspace, feature_name, field_name, sequence_prefix="", padded_sequence=False):
     print("\nAdding Sequence Attribute Rule...")
 
+    feature_prefix = os.path.basename(feature_name).split("_")[0]
+    sequence_name = field_name
+
     rule_description = f"{os.path.basename(feature_name)} - {field_name} - Generate ID"
-    expression = f"'{sequence_prefix}' + NextSequenceValue('sdeadm.{field_name}')"  # for SDE features
+    expression = f"'{sequence_prefix}' + NextSequenceValue('sdeadm.{sequence_name}')"  # for SDE features
 
     if padded_sequence:
         expression = f"""
         var sequence_prefix = '{sequence_prefix}'
-        var sequence_num = NextSequenceValue('sdeadm.{field_name}')
+        var sequence_num = NextSequenceValue('sdeadm.{sequence_name}')
         
         var add_zeros = When(
             sequence_num < 10, "00", 
@@ -84,7 +87,8 @@ def add_sequence_rule(workspace, feature_name, field_name, sequence_prefix="", p
 """  # for SDE features
 
     if field_name in ("ASSETID", "ASSET_ID"):
-        raise ValueError(f"Sequence for {field_name} needs a different sequence name.")
+        sequence_name = (os.path.basename(feature_name).replace("_", "").replace(feature_prefix, "") + field_name).upper()
+        # raise ValueError(f"Sequence for {field_name} needs a different sequence name.")
 
     in_feature = os.path.join(workspace, feature_name)
 
@@ -99,22 +103,22 @@ def add_sequence_rule(workspace, feature_name, field_name, sequence_prefix="", p
         return True
 
     if ".gdb" in workspace:
-        expression = f"'{sequence_prefix}' + NextSequenceValue('{field_name}')"
+        expression = f"'{sequence_prefix}' + NextSequenceValue('{sequence_name}')"
 
     try:
         arcpy.DeleteDatabaseSequence_management(
             in_workspace=workspace,
-            seq_name=field_name
+            seq_name=sequence_name
         )
 
     except arcpy.ExecuteError:
-        print(arcpy.GetMessages(2))
+        pass
 
     finally:
-        print(f"\tCreating db sequence {field_name}...")
+        print(f"\tCreating db sequence {sequence_name}...")
         arcpy.CreateDatabaseSequence_management(
             in_workspace=workspace,
-            seq_name=field_name,
+            seq_name=sequence_name,
             seq_start_id=1,
             seq_inc_value=1
         )
