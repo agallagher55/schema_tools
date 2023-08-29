@@ -2,6 +2,32 @@ import arcpy
 import functools
 
 
+def domain_report(workspace):
+
+    """
+    The get_domain_info function returns a dictionary of domain names and their coded values.
+
+    :param workspace: Specify the location of the geodatabase
+    :return: A dictionary of domain names and their coded values
+    """
+
+    workspace_domains = sorted(arcpy.da.ListDomains(workspace), key=lambda x: x.name)
+
+    domain_codes_values = dict()
+
+    for domain in workspace_domains:
+
+        coded_values = domain.codedValues
+
+        if not coded_values:
+            print(f"NO coded values for {domain.name}.")
+            continue
+
+        domain_codes_values[domain.name] = coded_values
+
+    return domain_codes_values
+
+
 def arcpy_messages(func):
     """
     The arcpy_messages function is a decorator that prints out the messages from ArcPy.
