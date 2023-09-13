@@ -16,12 +16,9 @@ config.read('config.ini')
 CURRENT_DIR = getcwd()
 
 ADD_CODE_VALUES = {
-    "TRN_sectrav_assetcode": {
-        "GHBDW": "Boardwalk Representation",
-        "GHPDB": "Pedestrian Bridge Representation",
-        "GHPTH": "Non-Existent Pathway",
-        "GHSDW": "Non-Existent Sidewalk",
-        "GHSTP": "Step Delineation",
+    "LND_zoning_TLB": {
+        "BCDD": "BCDD",
+
     },
 
 }
@@ -40,26 +37,28 @@ if __name__ == "__main__":
     PC_NAME = environ['COMPUTERNAME']
     run_from = "SERVER" if "APP" in PC_NAME else "LOCAL"
 
+    print(f"\nPC Name: {PC_NAME}\n\tRunning from: {run_from}...")
+
     for dbs in [
         # [local_gdb, ],
-        [config.get(run_from, "dev_rw"), config.get(run_from, "dev_ro"), config.get(run_from, "dev_web_ro_gdb")],
+        # [config.get(run_from, "dev_rw"), config.get(run_from, "dev_ro"), config.get(run_from, "dev_web_ro_gdb")],
         # [
         #     config.get(run_from, "qa_rw"),
         #     config.get(run_from, "qa_ro"),
         #     config.get(run_from, "qa_web_ro_gdb")
         # ],
-        # [config.get(run_from, "prod_rw"), config.get(run_from, "prod_ro"), config.get(run_from, "prod_web_ro_gdb")],
+        [config.get(run_from, "prod_rw"), config.get(run_from, "prod_ro"), config.get(run_from, "prod_web_ro_gdb")],
 
         # SQL SERVER
-        [
-        config.get("SQL SERVER", "dev_rw"),
-        config.get("SQL SERVER", "dev_ro"),
-        ],
-        [
-            config.get("SQL SERVER", "qa_rw"),
-            config.get("SQL SERVER", "qa_ro"),
-            # config.get("SQL SERVER", "qa_web_ro_gdb")
-        ],
+        # [
+        # config.get("SQL SERVER", "dev_rw"),
+        # config.get("SQL SERVER", "dev_ro"),
+        # ],
+        # [
+        #     config.get("SQL SERVER", "qa_rw"),
+        #     config.get("SQL SERVER", "qa_ro"),
+        #     # config.get("SQL SERVER", "qa_web_ro_gdb")
+        # ],
     ]:
 
         print(f"\nProcessing dbs: {', '.join(dbs)}...")
@@ -100,5 +99,5 @@ if __name__ == "__main__":
                 for count, code_value in enumerate(add_code_values, start=1):
                     new_value = add_code_values[code_value]
 
-                    print(f"\n{count}/{len(add_code_values)})")
+                    print(f"\n{count}/{len(add_code_values)}) Domain and Code: {code_value} & {new_value}")
                     domains.add_code_value(db, domain, code_value, new_value)
