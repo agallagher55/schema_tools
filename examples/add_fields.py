@@ -1,10 +1,11 @@
 import arcpy
 
 from features import Feature
+
 import utils
 
 from configparser import ConfigParser
-
+from os import getcwd, environ
 from os import getcwd
 
 arcpy.env.overwriteOutput = True
@@ -34,23 +35,27 @@ new_field_info = {
 if __name__ == "__main__":
     local_gdb = utils.create_fgdb(CURRENT_DIR)
     
+    PC_NAME = environ['COMPUTERNAME']
+    run_from = "SERVER" if "APP" in PC_NAME else "LOCAL"
+
     # TODO: Add to WEBGIS? web_ro?
 
     for dbs in [
-        # [local_gdb],
+        # [local_gdb, ],
+        # [config.get(run_from, "dev_rw"), config.get(run_from, "dev_ro"), config.get(run_from, "dev_web_ro_gdb")],
         # [
-        #     config.get("SERVER", "dev_rw"),
-        #     config.get("SERVER", "dev_ro"),
-        #  ],
-        [
-            config.get("SERVER", "qa_rw"),
-            config.get("SERVER", "qa_ro")
-        ],
-        # [
-        #     config.get("SERVER", "prod_rw"),
-        #     config.get("SERVER", "prod_ro")
+        #     config.get(run_from, "qa_rw"),
+        #     config.get(run_from, "qa_ro"),
+        #     config.get(run_from, "qa_web_ro_gdb")
         # ],
+        # [config.get(run_from, "prod_rw"), config.get(run_from, "prod_ro"), config.get(run_from, "prod_web_ro_gdb")],
 
+        # SQL SERVER
+        [
+            config.get("SQL SERVER", "qa_rw"),
+            config.get("SQL SERVER", "qa_ro"),
+            # config.get("SQL SERVER", "qa_web_ro_gdb")
+        ],
     ]:
 
         print(f"\nProcessing dbs: {', '.join(dbs)}...")
