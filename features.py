@@ -83,7 +83,7 @@ class Feature:
         else:
             if not self.spatial_reference:
                 raise ValueError(f"Please provide a spatial reference for this feature class.")
-            
+
             arcpy.CreateFeatureclass_management(
                 out_path=self.workspace,
                 out_name=self.feature_name,
@@ -118,7 +118,7 @@ class Feature:
             print(f"\t'{field_name}' already exists in {self.feature_name}")
             return True
 
-        FIELD_REQUIRED = "NON_REQUIRED"
+        field_required = "NON_REQUIRED"
         valid_types = ["TEXT", "FLOAT", "DOUBLE", "SHORT", "LONG", "DATE"]
 
         if field_type:
@@ -131,11 +131,6 @@ class Feature:
             print(f"Field Type: {field_type}")
             raise ValueError(f"Field type: '{field_type}' does not appear to be a valid field type!")
 
-        # if field_type == "SHORT":
-        #     field_precision = input("Please provide field precision: ")
-        #
-        # else:
-        #     field_precision = "#"  # int
 
         arcpy.AddField_management(
             in_table=self.feature,
@@ -147,7 +142,7 @@ class Feature:
             field_length=length,  # Field Length (# of characters)
             field_alias=alias,  # Alias
             field_is_nullable="NULLABLE",  # NULLABLE
-            field_is_required=FIELD_REQUIRED,  #
+            field_is_required=field_required,  #
             field_domain=domain_name  # Domain
         )
         self.fields.add(field_name)
@@ -208,7 +203,7 @@ class Feature:
 
     @arcpy_messages
     def add_editor_tracking_fields(self, field_info=EDITOR_TRACKING_FIELD_INFO):
-        """    
+        """
         The enable_editor_tracking function enables editor tracking on a feature class.
 
         :param creator_field: str: Specify the field that will store the name of the user who created a record
@@ -272,7 +267,7 @@ class Feature:
             current_default = [x.defaultValue for x in arcpy.ListFields(self.feature) if x.name == field][0]
             if current_default == default_value:
                 return default_value
-    
+
             arcpy.AssignDefaultToField_management(
                 in_table=self.feature,
                 field_name=field,
