@@ -61,114 +61,128 @@ if __name__ == "__main__":
 
     xl = r"T:\work\giss\monthly\202309sep\gallaga\LRS_hospital_routes\Create new LRS Event Hospital Routes 14Sep2023.xlsx"
 
-    workbook = pd.read_excel(xl, sheet_name=None)
-    workspace = create_fgdb()
-
-    lrs_routes = os.path.join(workspace, "TRNLRS", "LRSN_Route")
-
-    if not arcpy.Exists(lrs_routes):
-        raise ValueError(f"ERROR: '{lrs_routes}' does not exist.")
-
     if arcpy.CheckExtension('LocationReferencing') == "Available":
         arcpy.CheckOutExtension("LocationReferencing")
         print("License checked out.")
 
-    for sheet_name in event_names:
+    workbook = pd.read_excel(xl, sheet_name=None)
 
-        if sheet_name.upper() in skip_events:
-            continue
+    for workspace in [
+        # create_fgdb(),
+        r"E:\HRM\Scripts\SDE\SQL\qa_RW_sdeadm_branch.sde",
+        # r"E:\HRM\Scripts\SDE\prod_RW_sdeadm_branch.sde",
+    ]:
 
-        print(f"\nEvent: {sheet_name.upper()}")
+        lrs_routes = os.path.join(workspace, "SDEADM.TRNLRS", "SDEADM.LRSN_Route")
+        if ".gdb" in workspace:
+            output_event_feature = os.path.join(workspace, "TRNLRS", event_name)
 
-        # df = workbook[sheet_name]
-        lrs_form = LrsEventForm(xl, sheet_name)
-        form_field_info = lrs_form.field_info()
+        if not arcpy.Exists(lrs_routes):
+            raise ValueError(f"ERROR: '{lrs_routes}' does not exist.")
 
-        event_behaviours = lrs_form.event_behviours()
+        for sheet_name in event_names:
 
-        event_name = sheet_name
-        output_event_feature = os.path.join(workspace, "TRNLRS", event_name)
-
-        if not arcpy.Exists(output_event_feature):
-            try:
-                lrs_event = arcpy.locref.CreateLRSEvent(
-                    parent_network=lrs_routes,
-                    event_name=event_name,
-                    geometry_type="LINE",
-                    event_id_field="EventId",
-                    route_id_field="RouteId",
-                    from_date_field="FromDate",
-                    to_date_field="ToDate",
-                    loc_error_field="LocError",
-                    measure_field="FromMeasure",
-                    to_measure_field="ToMeasure",
-                    event_spans_routes="NO_SPANS_ROUTES",
-                )[0]
-
-                print(arcpy.GetMessages())
-
-            except arcpy.ExecuteError:
-                print(arcpy.GetMessages(2))
-
-        # Add fields
-        current_event_fields = [x.name.upper() for x in arcpy.ListFields(output_event_feature)]
-
-        for info in form_field_info:
-
-            field_name = info["FieldName"]
-
-            if field_name.upper() in current_event_fields:
+            if sheet_name.upper() in skip_events:
                 continue
 
-            if field_name not in LrsEventForm.standard_fields:
-                print(f"\nAdding field '{field_name}'...")
+            print(f"\nEvent: {sheet_name.upper()}")
 
-                arcpy.AddField_management(
-                    output_event_feature,
-                    field_name=field_name,
-                    field_type="TEXT" if "Date" not in info['Type'] else "DATE",
-                    field_precision="",
-                    field_scale="",
-                    field_length=info["Length"],
-                    field_alias=info["Alias"],
-                    field_is_nullable="NULLABLE",
-                    field_domain=info['Domain']
-                )
+            lrs_form = LrsEventForm(xl, sheet_name)
+            form_field_info = lrs_form.field_info()
 
-        # Add event behaviours
-        print("\nApplying event behaviours...")
-        event_behaviour_ruleset = lrs_form.event_behviours()
-        event_behviour_dict = {item['Activity']: item['Rule'] for item in event_behaviour_ruleset}
+            event_name = sheet_name
 
-        arcpy.locref.ModifyEventBehaviorRules(
-            in_feature_class=output_event_feature,
-            calibrate_rule=event_behviour_dict['Calibrate Route'],
-            retire_rule=event_behviour_dict['Retire Route'],
-            extend_rule=event_behviour_dict['Extend Route'],
-            reassign_rule=event_behviour_dict['Reassign Route'],
-            realign_rule=event_behviour_dict['Realign Route'],
-            reverse_rule=event_behviour_dict['Reverse Route'],
-            carto_realign_rule=event_behviour_dict['Carto Realign Route']
-        )
-        print(arcpy.GetMessages())
+            output_event_feature = os.path.join(workspace, "GISRW01.SDEADM.TRNLRS", f"GISRW01.SDEADM.{event_name}")
+            if ".gdb" in workspace:
+                output_event_feature = os.path.join(workspace, "TRNLRS", event_name)
 
-        # Apply Editor Tracking
-        print(f"\nApplying editor tracking to {output_event_feature}...")
+            if not arcpy.Exists(output_event_feature):
+                print(f"\nCreating event feature '{output_event_feature}'...")
 
-        if arcpy.Describe(output_event_feature).editorTrackingEnabled:
-            print(f"\t{output_event_feature} already had Editor Tracking Enabled!")
+                try:
+                    # TODO: THIS ONLY WORKED MANUALLY
+                    lrs_event = arcpy.locref.CreateLRSEvent(
+                        parent_network=lrs_routes,
+                        # event_name=output_event_feature,  # <-- Use the full path here
+                        event_name=event_name,  # <-- Use the full path here?
+                        geometry_type="LINE",
+                        event_id_field="EventId",
+                        route_id_field="RouteId",
+                        from_date_field="FromDate",
+                        to_date_field="ToDate",
+                        loc_error_field="LocError",
+                        measure_field="FromMeasure",
+                        to_measure_field="ToMeasure",
+                        event_spans_routes="NO_SPANS_ROUTES",
+                    )[0]
 
-        arcpy.EnableEditorTracking_management(
-            output_event_feature,
-            "ADDBY",
-            "ADDDATE",
-            "MODBY",
-            "MODDATE",
-            "NO_ADD_FIELDS",
-            "UTC"
-        )
-        print(arcpy.GetMessages())
+                    print(arcpy.GetMessages())
 
-        # Add GlobalIDs
-        print("Adding GlobalIDs...")
-        arcpy.AddGlobalIDs_management(output_event_feature)
+                except arcpy.ExecuteError:
+                    print(arcpy.GetMessages(2))
+
+            # Add fields
+            current_event_fields = [x.name.upper() for x in arcpy.ListFields(output_event_feature)]
+
+            for info in form_field_info:
+
+                field_name = info["FieldName"]
+
+                if field_name.upper() in current_event_fields:
+                    continue
+
+                if field_name not in LrsEventForm.standard_fields:
+                    print(f"\nAdding field '{field_name}'...")
+
+                    arcpy.AddField_management(
+                        output_event_feature,
+                        field_name=field_name,
+                        field_type="TEXT" if "Date" not in info['Type'] else "DATE",
+                        field_precision="",
+                        field_scale="",
+                        field_length=info["Length"],
+                        field_alias=info["Alias"],
+                        field_is_nullable="NULLABLE",
+                        field_domain=info['Domain']
+                    )
+
+            # Add event behaviours
+            print("\nApplying event behaviours...")
+            event_behaviour_ruleset = lrs_form.event_behviours()
+            event_behviour_dict = {item['Activity']: item['Rule'] for item in event_behaviour_ruleset}
+
+            arcpy.locref.ModifyEventBehaviorRules(
+                in_feature_class=output_event_feature,
+                calibrate_rule=event_behviour_dict['Calibrate Route'],
+                retire_rule=event_behviour_dict['Retire Route'],
+                extend_rule=event_behviour_dict['Extend Route'],
+                reassign_rule=event_behviour_dict['Reassign Route'],
+                realign_rule=event_behviour_dict['Realign Route'],
+                reverse_rule=event_behviour_dict['Reverse Route'],
+                carto_realign_rule=event_behviour_dict['Carto Realign Route']
+            )
+            print(arcpy.GetMessages())
+
+            # Apply Editor Tracking
+            print(f"\nApplying editor tracking to {output_event_feature}...")
+
+            if arcpy.Describe(output_event_feature).editorTrackingEnabled:
+                print(f"\t{output_event_feature} already had Editor Tracking Enabled!")
+
+            arcpy.EnableEditorTracking_management(
+                output_event_feature,
+                "ADDBY",
+                "ADDDATE",
+                "MODBY",
+                "MODDATE",
+                "NO_ADD_FIELDS",
+                "UTC"
+            )
+            print(arcpy.GetMessages())
+
+            # Add GlobalIDs
+            print("Adding GlobalIDs...")
+            arcpy.AddGlobalIDs_management(output_event_feature)
+
+    arcpy.CheckInExtension("LocationReferencing")
+    print("\nLocation referencing license returned.")
