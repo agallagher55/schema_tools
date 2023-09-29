@@ -32,7 +32,6 @@ REMOVE_CODE_VALUES = {
 
 
 if __name__ == "__main__":
-    local_gdb = utils.create_fgdb(CURRENT_DIR)
 
     PC_NAME = environ['COMPUTERNAME']
     run_from = "SERVER" if "APP" in PC_NAME else "LOCAL"
@@ -40,7 +39,7 @@ if __name__ == "__main__":
     print(f"\nPC Name: {PC_NAME}\n\tRunning from: {run_from}...")
 
     for dbs in [
-        # [local_gdb, ],
+        # [utils.create_fgdb(CURRENT_DIR), ],
         # [config.get(run_from, "dev_rw"), config.get(run_from, "dev_ro"), config.get(run_from, "dev_web_ro_gdb")],
         # [
         #     config.get(run_from, "qa_rw"),
