@@ -26,10 +26,8 @@ if __name__ == "__main__":
 
     print(datetime.now())
 
-    local_gdb = utils.create_fgdb(CURRENT_DIR)
-
     for dbs in [
-        # [local_gdb, ],
+        # [utils.create_fgdb(CURRENT_DIR)],
         # [config.get("SERVER", "dev_rw"), config.get("SERVER", "dev_ro"), config.get("SERVER", "dev_web_ro_gdb")],
         [
             config.get("SERVER", "qa_rw"),
