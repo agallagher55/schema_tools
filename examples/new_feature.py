@@ -67,10 +67,8 @@ if __name__ == "__main__":
 
     CURRENT_DIR = os.getcwd()
 
-    local_gdb = utils.create_fgdb(out_folder_path=CURRENT_DIR, out_name="scratch.gdb")
-
     for dbs in [
-        [local_gdb],
+        [utils.create_fgdb(out_folder_path=CURRENT_DIR, out_name="scratch.gdb")],
         # [
         #     config.get("SERVER", "dev_rw"),
         #     # config.get("SERVER", "dev_ro"),
