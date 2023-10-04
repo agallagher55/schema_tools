@@ -65,7 +65,10 @@ if __name__ == "__main__":
 
             if db.endswith(".gdb"):
                 FEATURE = FEATURE.replace("SDEADM.", "")
-
+                
+            elif "WEBGIS" in db.upper():
+                FEATURE = FEATURE.replace("SDEADM.", "WEBGIS.")
+                
             print(f"Feature: {FEATURE}")
 
             with arcpy.EnvManager(workspace=db):
