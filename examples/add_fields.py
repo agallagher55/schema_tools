@@ -54,7 +54,14 @@ if __name__ == "__main__":
         [
             config.get("SQL SERVER", "qa_rw"),
             config.get("SQL SERVER", "qa_ro"),
+            # config.get("SQL SERVER", "qa_web_ro"),
             # config.get("SQL SERVER", "qa_web_ro_gdb")
+        ],
+        [
+            # config.get(run_from, "prod_rw"),
+            # config.get(run_from, "prod_ro"),
+            # config.get(run_from, "prod_ro_web"),
+            # config.get(run_from, "prod_web_ro_gdb")
         ],
     ]:
 
