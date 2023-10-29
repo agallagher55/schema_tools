@@ -63,11 +63,12 @@ def toggle_rule(rule_names: list, rule_type: str, feature, enable_disable: str):
         )
 
 
-def add_sequence_rule(workspace, feature_name, field_name, sequence_prefix="", padded_sequence=False, start_value=1):
-    print("\nAdding Sequence Attribute Rule...")
+def add_sequence_rule(workspace, feature_name, field_name, sequence_prefix="", padded_sequence=False, start_value=1, sequence_name=''):
+    print(f"\nAdding Sequence Attribute Rule to {feature_name}...")
 
     feature_prefix = os.path.basename(feature_name).split("_")[0]
-    sequence_name = field_name
+    if not sequence_name:
+        sequence_name = field_name
 
     rule_description = f"{os.path.basename(feature_name)} - {field_name} - Generate ID"
     expression = f"'{sequence_prefix}' + NextSequenceValue('sdeadm.{sequence_name}')"  # for SDE features
