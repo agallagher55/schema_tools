@@ -63,7 +63,7 @@ def toggle_rule(rule_names: list, rule_type: str, feature, enable_disable: str):
         )
 
 
-def add_sequence_rule(workspace, feature_name, field_name, sequence_prefix="", padded_sequence=False):
+def add_sequence_rule(workspace, feature_name, field_name, sequence_prefix="", padded_sequence=False, start_value=1):
     print("\nAdding Sequence Attribute Rule...")
 
     feature_prefix = os.path.basename(feature_name).split("_")[0]
@@ -76,18 +76,19 @@ def add_sequence_rule(workspace, feature_name, field_name, sequence_prefix="", p
         expression = f"""
         var sequence_prefix = '{sequence_prefix}'
         var sequence_num = NextSequenceValue('sdeadm.{sequence_name}')
-        
+
         var add_zeros = When(
             sequence_num < 10, "00", 
             sequence_num >=10 && sequence_num < 100, "0", 
             ''
         );
-        
+
         return sequence_prefix + add_zeros + sequence_num 
 """  # for SDE features
 
     if field_name in ("ASSETID", "ASSET_ID"):
-        sequence_name = (os.path.basename(feature_name).replace("_", "").replace(feature_prefix, "") + field_name).upper()
+        sequence_name = (
+                    os.path.basename(feature_name).replace("_", "").replace(feature_prefix, "") + field_name).upper()
         # raise ValueError(f"Sequence for {field_name} needs a different sequence name.")
 
     in_feature = os.path.join(workspace, feature_name)
@@ -119,7 +120,7 @@ def add_sequence_rule(workspace, feature_name, field_name, sequence_prefix="", p
         arcpy.CreateDatabaseSequence_management(
             in_workspace=workspace,
             seq_name=sequence_name,
-            seq_start_id=1,
+            seq_start_id=start_value,
             seq_inc_value=1
         )
 
