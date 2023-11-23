@@ -108,14 +108,20 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
 
     # Check for GlobalIDs
     for workspace in rw_sde, ro_sde:
-        
+
         with arcpy.EnvManager(workspace=workspace):
-            features_have_globalids = [any(x.name.upper() == "GLOBALID" for x in arcpy.ListFields(feature)) for feature in add_features]
+            if "RO" in workspace:
+                add_features = [x.replace("GISRW01", "GISRO01") for x in add_features]
+
+            features_have_globalids = [
+                any(x.name.upper() == "GLOBALID" for x in arcpy.ListFields(feature)) for feature in add_features
+            ]
 
             if not features_have_globalids:
                 return False
 
     add_features = list(set([os.path.basename(x) for x in add_features]))
+    add_features = list(set([".".join(x.split(".")[1:]) for x in add_features]))
 
     replica_name = replica_name.replace("SDEADM.", "")
     sde_replica_name = f"SDEADM.{replica_name}"
@@ -227,19 +233,19 @@ if __name__ == "__main__":
     dev_rw = r"E:\HRM\Scripts\SDE\dev_RW_sdeadm.sde"
     dev_ro = r"E:\HRM\Scripts\SDE\dev_RO_sdeadm.sde"
 
-    qa_rw = r"E:\HRM\Scripts\SDE\qa_RW_sdeadm.sde"
-    qa_ro = r"E:\HRM\Scripts\SDE\qa_RO_sdeadm.sde"
+    qa_rw = r"E:\HRM\Scripts\SDE\SQL\qa_RW_sdeadm.sde"
+    qa_ro = r"E:\HRM\Scripts\SDE\SQL\qa_RO_sdeadm.sde"
 
-    prod_rw = r"E:\HRM\Scripts\SDE\prod_RW_sdeadm.sde"
-    prod_ro = r"E:\HRM\Scripts\SDE\prod_RO_sdeadm.sde"
+    prod_rw = r"E:\HRM\Scripts\SDE\SQL\Prod\prod_RW_sdeadm.sde"
+    prod_ro = r"E:\HRM\Scripts\SDE\SQL\Prod\prod_RO_sdeadm.sde"
 
     for rw_sde, ro_sde in (
-            (dev_rw, dev_ro),
-            # (qa_rw, qa_ro),
+            # (dev_rw, dev_ro),
+            (qa_rw, qa_ro),
             # (prod_rw, prod_ro),
     ):
 
-        replica_name = "TRN_Rosde"
+        replica_name = "ADM_Rosde"
 
         current_workspace = Workspace(rw_sde)
         workspace_replicas = [x.name for x in current_workspace.replicas]
@@ -252,9 +258,7 @@ if __name__ == "__main__":
                 txtfile.write(f"{feature}\n")
 
         new_features = [
-            "SDEADM.TRN_RTS_routes",
-            'SDEADM.TRN_RTS_walksheds',
-            'SDEADM.TRN_RTS_stops',
+            "SDEADM.ADM_parks_region",
         ]
 
         all_features = replica_features + new_features
