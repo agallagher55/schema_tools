@@ -76,14 +76,16 @@ if __name__ == "__main__":
 
         [
             # config.get(run_from, "qa_rw"),
-            # config.get(run_from, "qa_ro"),
+            config.get(run_from, "qa_ro"),
+            # config.get(run_from, "qa_web_ro"),
             # config.get(run_from, "qa_web_ro_gdb")
         ],
-        [
-            config.get(run_from, "prod_rw"),
-            config.get(run_from, "prod_ro"),
-            config.get(run_from, "prod_web_ro_gdb")
-        ],
+        # [
+        #     config.get(run_from, "prod_rw"),
+        #     config.get(run_from, "prod_ro"),
+        #     config.get(run_from, "prod_web_ro"),
+        #     config.get(run_from, "prod_web_ro_gdb")
+        # ],
     ]:
 
         if dbs:
@@ -92,43 +94,44 @@ if __name__ == "__main__":
             for db in dbs:
                 print(f"\nDATABASE: {db}")
 
-            if db.endswith(".gdb"):
-                FEATURE = FEATURE.replace("SDEADM.", "")
-
-            elif "WEBGIS" in db.upper():
-                FEATURE = FEATURE.replace("SDEADM.", "WEBGIS.")
-
-            print(f"Feature: {FEATURE}")
-
-            with arcpy.EnvManager(workspace=db):
-
-                # Check if feature exists
-                if not arcpy.Exists(FEATURE):
-                    raise ValueError(f"\tFeature, '{FEATURE}', does not exist.")
-
-                desc = arcpy.Describe(FEATURE)
-
-                my_feature = Feature(db, desc.baseName, "POINT")
-                current_fields = [x.name for x in arcpy.ListFields(FEATURE)]
-
-                # TODO: Stop services
-
-                for field in new_field_info:
-                    print(f"\nField to add: '{field}'")
-
-                    # Check that field doesn't already exist
-
-                    if field in current_fields:
-                        print(f"Field, {field} already exists in {FEATURE}..!")
-                        continue
-
-                    my_feature.add_field(
-                        field_name=field,
-                        field_type=new_field_info[field]["field_type"],
-                        length=new_field_info[field].get("field_length", "#"),
-                        alias=new_field_info[field]["alias"],
-                        domain_name=new_field_info[field]["domain"]
-                    )
-
-                # TODO: Start services
-                # * Had to manually unlock with SDE connection
+                if db.endswith(".gdb"):
+                    FEATURE = FEATURE.replace("SDEADM.", "")
+    
+                elif "WEBGIS" in db.upper():
+                    FEATURE = FEATURE.replace("SDEADM.", "WEBGIS.")
+    
+                print(f"Feature: {FEATURE}")
+    
+                with arcpy.EnvManager(workspace=db):
+    
+                    # Check if feature exists
+                    if not arcpy.Exists(FEATURE):
+                        raise ValueError(f"\tFeature, '{FEATURE}', does not exist.")
+    
+                    desc = arcpy.Describe(FEATURE)
+    
+                    my_feature = Feature(db, desc.baseName, "POINT")
+                    current_fields = [x.name for x in arcpy.ListFields(FEATURE)]
+    
+                    # TODO: Stop services
+    
+                    for field in new_field_info:
+                        print(f"\nField to add: '{field}'")
+    
+                        # Check that field doesn't already exist
+    
+                        if field in current_fields:
+                            print(f"Field, {field} already exists in {FEATURE}..!")
+                            continue
+    
+                        print(f"Adding {field} to {FEATURE}...")
+                        my_feature.add_field(
+                            field_name=field,
+                            field_type=new_field_info[field]["field_type"],
+                            length=new_field_info[field].get("field_length", "#"),
+                            alias=new_field_info[field]["alias"],
+                            domain_name=new_field_info[field]["domain"]
+                        )
+    
+                    # TODO: Start services
+                    # * Had to manually unlock with SDE connection
