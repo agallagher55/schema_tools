@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     for dbs in [
         # [local_gdb, ],
-        
+
         # WEBGIS features can use domains from SDEADM owner - don't need to create a domain for both SDEADM and WEBGIS
 
         # [config.get(run_from, "dev_rw"), config.get(run_from, "dev_ro"), config.get(run_from, "dev_web_ro_gdb")],
@@ -44,9 +44,9 @@ if __name__ == "__main__":
             # config.get(run_from, "qa_web_ro_gdb")
         ],
         [
-            # config.get(run_from, "prod_rw"),
-            # config.get(run_from, "prod_ro"),
-            # config.get(run_from, "prod_web_ro_gdb")
+            config.get(run_from, "prod_rw"),
+            config.get(run_from, "prod_ro"),
+            config.get(run_from, "prod_web_ro_gdb")
         ],
     ]:
 
