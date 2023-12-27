@@ -218,13 +218,16 @@ def create_domain(
     :param domain_name:
     :param workspace:
     """
-    
+
     # TODO: Check that domain doesn't already exist.
-    
+
     print(f"\nCreating new domain, '{domain_name},' in '{workspace}'...")
 
     if domain_description:
         print(f"\tDescription: {domain_description}")
+    
+    else:
+        domain_description = domain_name
 
     if domain_type:
         print(f"\tType: {domain_type}")
