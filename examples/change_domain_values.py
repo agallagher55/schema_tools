@@ -16,18 +16,21 @@ config.read('config.ini')
 CURRENT_DIR = getcwd()
 
 ADD_CODE_VALUES = {
-    "LND_zoning_TLB": {
-        "BCDD": "BCDD",
-
+    "TRN_pavement_mark_priority": {
+        "P": "Priority",
+        "R": "Regular",
     },
-
+    "TRN_pavement_marking_status": {
+        "NEW": "New Item",
+    },
+    "TRN_pavement_mark_loc_type": {
+        "NON": "Non-Signalized Intersection",
+    },
 }
 
 REMOVE_CODE_VALUES = {
-    # "LND_zoning_HPSBB":
-    #     {
-    #         "R-1b": "R-1b"
-    #     },
+    "TRN_pavement_marking_status": "CAPDEV",
+    "TRN_pavement_mark_loc_type": "INT",
     }
 
 
