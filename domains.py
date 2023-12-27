@@ -210,31 +210,33 @@ def create_domain(
 ):
     """
 
-    :param merge_policy: 
-    :param split_policy: 
-    :param domain_type: 
-    :param field_type: 
-    :param domain_description: 
-    :param domain_name: 
-    :param workspace: 
+    :param merge_policy:
+    :param split_policy:
+    :param domain_type:
+    :param field_type:
+    :param domain_description:
+    :param domain_name:
+    :param workspace:
     """
-
-    print(f"\nCreating new domain, '{domain_name},' in '{workspace}'...")
     
+    # TODO: Check that domain doesn't already exist.
+    
+    print(f"\nCreating new domain, '{domain_name},' in '{workspace}'...")
+
     if domain_description:
         print(f"\tDescription: {domain_description}")
-        
+
     if domain_type:
         print(f"\tType: {domain_type}")
-    
+
     result = arcpy.CreateDomain_management(
-        in_workspace=workspace, 
-        domain_name=domain_name, 
-        domain_description=domain_description, 
-        field_type=field_type, 
+        in_workspace=workspace,
+        domain_name=domain_name,
+        domain_description=domain_description,
+        field_type=field_type,
         domain_type=domain_type,
-        split_policy=split_policy, 
+        split_policy=split_policy,
         merge_policy=merge_policy
     )[0]
 
-    
+
