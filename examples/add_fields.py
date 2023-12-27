@@ -16,32 +16,59 @@ config.read('config.ini')
 
 CURRENT_DIR = getcwd()
 
-FEATURE = "SDEADM.TRN_bus_stop"  # TODO: this should be renamed so it doesn't clash with import
+FEATURE = "SDEADM.TRN_pavement_marking"  # TODO: this should be renamed so it doesn't clash with import
 
 SPATIAL_REFERENCE = None
 
 new_field_info = {
-    "INSP_DATE": {
-        "description": "The date that the bus stop was last inspected by Halifax Transit Staff",
-        "alias": "Date Last Inspected",
+    "PRIORITY": {
+        "description": "Pavement marking is listed as regular or priority",
+        "alias": "Priority",
+        "field_type": "TEXT",
+        "field_length": "5",
+        "nullable": "NULLABLE",
+        "default": "",
+        "domain": ""
+    },
+    "BWL_1_8_M": {
+        "description": "Total length in metres",
+        "alias": "Broken White Line (1.8m)",
+        "field_type": "DOUBLE",
+        # "field_length": "50",
+        "nullable": "NULLABLE",
+        "default": "",
+        "domain": ""
+    },
+    "BWL_0_5_M": {
+        "description": "Total length in metres",
+        "alias": "Broken White Line (0.5m)",
+        "field_type": "DOUBLE",
+        # "field_length": "50",
+        "nullable": "NULLABLE",
+        "default": "",
+        "domain": ""
+    },
+    "BWL_3_0_M": {
+        "description": "Broken White Line (3m)",
+        "alias": "Date Last DOUBLE",
         "field_type": "DATE",
         # "field_length": "50",
         "nullable": "NULLABLE",
         "default": "",
         "domain": ""
-    }
+    },
 }
 
 if __name__ == "__main__":
     local_gdb = utils.create_fgdb(CURRENT_DIR)
-    
+
     PC_NAME = environ['COMPUTERNAME']
     run_from = "SERVER" if "APP" in PC_NAME else "LOCAL"
 
     # TODO: Add to WEBGIS? web_ro?
 
     for dbs in [
-        # [local_gdb, ],
+        [local_gdb, ],
         # [config.get(run_from, "dev_rw"), config.get(run_from, "dev_ro"), config.get(run_from, "dev_web_ro_gdb")],
         # [
         #     config.get(run_from, "qa_rw"),
@@ -52,8 +79,8 @@ if __name__ == "__main__":
 
         # SQL SERVER
         [
-            config.get("SQL SERVER", "qa_rw"),
-            config.get("SQL SERVER", "qa_ro"),
+            # config.get("SQL SERVER", "qa_rw"),
+            # config.get("SQL SERVER", "qa_ro"),
             # config.get("SQL SERVER", "qa_web_ro"),
             # config.get("SQL SERVER", "qa_web_ro_gdb")
         ],
@@ -72,13 +99,17 @@ if __name__ == "__main__":
 
             if db.endswith(".gdb"):
                 FEATURE = FEATURE.replace("SDEADM.", "")
-                
+
             elif "WEBGIS" in db.upper():
                 FEATURE = FEATURE.replace("SDEADM.", "WEBGIS.")
-                
+
             print(f"Feature: {FEATURE}")
 
             with arcpy.EnvManager(workspace=db):
+
+                # Check if feature exists
+                if not arcpy.Exists(FEATURE):
+                    raise ValueError(f"\tFeature, '{FEATURE}', does not exist.")
 
                 desc = arcpy.Describe(FEATURE)
 
