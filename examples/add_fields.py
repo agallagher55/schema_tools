@@ -68,34 +68,29 @@ if __name__ == "__main__":
     # TODO: Add to WEBGIS? web_ro?
 
     for dbs in [
-        [local_gdb, ],
-        # [config.get(run_from, "dev_rw"), config.get(run_from, "dev_ro"), config.get(run_from, "dev_web_ro_gdb")],
-        # [
-        #     config.get(run_from, "qa_rw"),
-        #     config.get(run_from, "qa_ro"),
-        #     config.get(run_from, "qa_web_ro_gdb")
-        # ],
-        # [config.get(run_from, "prod_rw"), config.get(run_from, "prod_ro"), config.get(run_from, "prod_web_ro_gdb")],
+        # [local_gdb, ],
 
-        # SQL SERVER
+        # WEBGIS features can use domains from SDEADM owner - don't need to create a domain for both SDEADM and WEBGIS
+
+        # [config.get(run_from, "dev_rw"), config.get(run_from, "dev_ro"), config.get(run_from, "dev_web_ro_gdb")],
+
         [
-            # config.get("SQL SERVER", "qa_rw"),
-            # config.get("SQL SERVER", "qa_ro"),
-            # config.get("SQL SERVER", "qa_web_ro"),
-            # config.get("SQL SERVER", "qa_web_ro_gdb")
+            # config.get(run_from, "qa_rw"),
+            # config.get(run_from, "qa_ro"),
+            # config.get(run_from, "qa_web_ro_gdb")
         ],
         [
-            # config.get(run_from, "prod_rw"),
-            # config.get(run_from, "prod_ro"),
-            # config.get(run_from, "prod_ro_web"),
-            # config.get(run_from, "prod_web_ro_gdb")
+            config.get(run_from, "prod_rw"),
+            config.get(run_from, "prod_ro"),
+            config.get(run_from, "prod_web_ro_gdb")
         ],
     ]:
 
-        print(f"\nProcessing dbs: {', '.join(dbs)}...")
+        if dbs:
+            print(f"\nProcessing dbs: {', '.join(dbs)}...")
 
-        for db in dbs:
-            print(f"\nDATABASE: {db}")
+            for db in dbs:
+                print(f"\nDATABASE: {db}")
 
             if db.endswith(".gdb"):
                 FEATURE = FEATURE.replace("SDEADM.", "")
