@@ -219,7 +219,7 @@ def create_domain(
     :param workspace: 
     """
 
-    print(f"\nCreating new domain, '{domain_name}' in '{workspace}'...")
+    print(f"\nCreating new domain, '{domain_name},' in '{workspace}'...")
     
     if domain_description:
         print(f"\tDescription: {domain_description}")
