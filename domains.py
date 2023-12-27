@@ -3,7 +3,6 @@ import functools
 
 
 def domain_report(workspace):
-
     """
     The get_domain_info function returns a dictionary of domain names and their coded values.
 
@@ -35,7 +34,7 @@ def arcpy_messages(func):
     :param func: Pass in the function that is being decorated
     :return: A wrapper function that is used to decorate the input function
     """
-    
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         try:
@@ -202,3 +201,40 @@ def transfer_domains(domains: list, output_workspace, from_workspace) -> dict:
                 print(f"\t'{domain}' is already in the output workspace!")
 
     return {"unfound_domains": unfound_domains, "domains": domains}
+
+
+@arcpy_messages
+def create_domain(
+        workspace, domain_name: str, domain_description: str, field_type: str = "TEXT", domain_type: str = "CODED",
+        split_policy: str = "DUPLICATE", merge_policy: str = "DEFAULT"
+):
+    """
+
+    :param merge_policy: 
+    :param split_policy: 
+    :param domain_type: 
+    :param field_type: 
+    :param domain_description: 
+    :param domain_name: 
+    :param workspace: 
+    """
+
+    print(f"\nCreating new domain, '{domain_name}' in '{workspace}'...")
+    
+    if domain_description:
+        print(f"\tDescription: {domain_description}")
+        
+    if domain_type:
+        print(f"\tType: {domain_type}")
+    
+    result = arcpy.CreateDomain_management(
+        in_workspace=workspace, 
+        domain_name=domain_name, 
+        domain_description=domain_description, 
+        field_type=field_type, 
+        domain_type=domain_type,
+        split_policy=split_policy, 
+        merge_policy=merge_policy
+    )[0]
+
+    
