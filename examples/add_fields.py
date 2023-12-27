@@ -28,7 +28,7 @@ new_field_info = {
         "field_length": "5",
         "nullable": "NULLABLE",
         "default": "",
-        "domain": ""
+        "domain": "TRN_pavement_mark_priority"
     },
     "BWL_1_8_M": {
         "description": "Total length in metres",
@@ -49,9 +49,9 @@ new_field_info = {
         "domain": ""
     },
     "BWL_3_0_M": {
-        "description": "Broken White Line (3m)",
-        "alias": "Date Last DOUBLE",
-        "field_type": "DATE",
+        "description": "Total length in metres",
+        "alias": "Broken White Line (3m)",
+        "field_type": "DOUBLE",
         # "field_length": "50",
         "nullable": "NULLABLE",
         "default": "",
