@@ -142,6 +142,14 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
         if invalid_ro_features:
             raise ValueError(f"ERROR: Did not find features ({', '.join(invalid_ro_features)}) in {ro_sde}")
 
+        for feature in add_features:
+            desc = arcpy.Describe(feature)
+            globalids = desc.hasGlobalID
+
+            if not globalids:
+                print("\tAdding GlobalIDs..!")
+                arcpy.AddGlobalIDs_management(feature)
+
     with arcpy.EnvManager(workspace=rw_sde):
 
         # Check to see if feature exists in rw workspace
