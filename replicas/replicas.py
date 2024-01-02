@@ -64,7 +64,7 @@ def sync_replicas(replica_name: str, rw_sde: str, ro_sde: str):
         in_direction="FROM_GEODATABASE1_TO_2",
         conflict_policy="IN_FAVOR_OF_GDB1",
         conflict_definition="BY_OBJECT",
-        reconcile="RECONCILE "
+        reconcile="RECONCILE "  # TODO: Should this space be removed..?
     )
 
 
@@ -161,15 +161,18 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
         print(f"\tReplica already exists? {replica_exists}")
         print(f"\t\t(Replicas: {', '.join([x.name for x in rw_replicas])})")
 
-        # Check if add_features are versioned
+        # Check if add_features are versioned and have GlobalIDs
         for feature in add_features:
             desc = arcpy.Describe(feature)
             versioned = desc.isVersioned
+            globalids = desc.hasGlobalID
 
             if not versioned:
                 register_as_versioned(feature)
 
-        # TODO: Check to make sure features have GlobalIDs
+            if not globalids:
+                print("\tAdding GlobalIDs..!")
+                arcpy.AddGlobalIDs_management(feature)
 
         if replica_exists:
 
@@ -245,7 +248,7 @@ if __name__ == "__main__":
             # (prod_rw, prod_ro),
     ):
 
-        replica_name = "ADM_Rosde"
+        replica_name = "LND_Rosde"
 
         current_workspace = Workspace(rw_sde)
         workspace_replicas = [x.name for x in current_workspace.replicas]
@@ -258,7 +261,7 @@ if __name__ == "__main__":
                 txtfile.write(f"{feature}\n")
 
         new_features = [
-            "SDEADM.ADM_parks_region",
+            "SDEADM.LND_subdiv_applications",
         ]
 
         all_features = replica_features + new_features
