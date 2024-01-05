@@ -1,5 +1,17 @@
 import arcpy
 
+from os import environ
+
+from configparser import ConfigParser
+
+from os import getcwd, environ
+
+arcpy.env.overwriteOutput = True
+arcpy.SetLogHistory(False)
+
+config = ConfigParser()
+config.read('config.ini')
+
 # DEV
 dev_rw = "C:\\Users\\gallaga\\AppData\\Roaming\\Esri\\ArcGISPro\\Favorites\\DEV_RW_SDEADM.sde"
 dev_ro = "C:\\Users\\gallaga\\AppData\\Roaming\\Esri\\ArcGISPro\\Favorites\\DEV_RO_SDEADM.sde"
@@ -30,37 +42,60 @@ web_gdbs = [
 ]
 
 FIELD_DEFAULTS = {
-    "HRM_DEPT": "REAL ESTATE",
-    "TRANSASSET": "LND",  # LND
-    "SOURCE": "Transaction Summary",  # Not a Domain
-    "SACC": "IN"  # IN
+    "SPEC_TYPE": "GRASS",
 }
 
-SUBTYPE_CODES = ['1: Acquisition', '2: Disposal']
-
+# SUBTYPE_CODES = ['1: Acquisition', '2: Disposal']
+SUBTYPE_CODES = ['1: Natural Area Descriptions']
 
 if __name__ == "__main__":
-    
-    FEATURE = "SDEADM.LND_ACQUISITION_DISPOSAL"
-    
+
+    PC_NAME = environ['COMPUTERNAME']
+    run_from = "SERVER" if "APP" in PC_NAME else "LOCAL"
+
+    SDE = r"E:\HRM\Scripts\SDE\SQL\Prod\prod_RW_sdeadm.sde"
+    FEATURE = "SDEADM.LND_grass_contract"
+    # FEATURE = "SDEADM.LND_ACQUISITION_DISPOSAL"
+
     # for connection in web_gdbs:
-    for connection in [
-        # dev_rw, dev_ro, dev_web_ro
-        # qa_rw, qa_ro, qa_web_ro,
-        prod_rw, prod_ro, prod_ro_web
+    for dbs in [
+        # WEBGIS features can use domains from SDEADM owner - don't need to create a domain for both SDEADM and WEBGIS
 
+        # [
+        # config.get(run_from, "dev_rw"),
+        # config.get(run_from, "dev_ro"),
+        # ],
+        # [
+            # config.get(run_from, "qa_rw"),
+            # config.get(run_from, "qa_ro"),
+            # config.get(run_from, "qa_web_ro_gdb")
+        # ],
+        [
+            config.get(run_from, "prod_rw"),
+        #     config.get(run_from, "prod_ro"),
+        #     config.get(run_from, "prod_web_ro_gdb")
+        ],
     ]:
-        print(f"\nProcessing {connection} workspace...")
+        if dbs:
+            print(f"\nProcessing dbs: {', '.join(dbs)}...")
 
-        with arcpy.EnvManager(workspace=connection):
+            for db in dbs:
 
-            for field_name, field_default in FIELD_DEFAULTS.items():
-                print(f"\tSetting {field_name} default to '{field_default}'...")
+                print(f"\nProcessing {db} workspace...")
 
-                result = arcpy.AssignDefaultToField_management(
-                    in_table=FEATURE,
-                    field_name=field_name,
-                    default_value=field_default,
-                    subtype_code=SUBTYPE_CODES,
-                    clear_value="DO_NOT_CLEAR"
-                )[0]
+                with arcpy.EnvManager(workspace=db):
+
+                    # Get subtypes
+                    subtypes = arcpy.da.ListSubtypes(FEATURE)
+                    subtype_codes = [f'{s}: {subtypes[s]["Name"]}' for s in subtypes]
+
+                    for field_name, field_default in FIELD_DEFAULTS.items():
+                        print(f"\tSetting {field_name} default to '{field_default}'...")
+
+                        result = arcpy.AssignDefaultToField_management(
+                            in_table=FEATURE,
+                            field_name=field_name,
+                            default_value=field_default,
+                            subtype_code=SUBTYPE_CODES,
+                            clear_value="DO_NOT_CLEAR"
+                        )[0]
