@@ -53,15 +53,12 @@ if __name__ == "__main__":
         # [config.get(run_from, "prod_rw"), config.get(run_from, "prod_ro"), config.get(run_from, "prod_web_ro_gdb")],
 
         # SQL SERVER
-        # [
-        # config.get("SQL SERVER", "dev_rw"),
-        # config.get("SQL SERVER", "dev_ro"),
-        # ],
-        # [
-        #     config.get("SQL SERVER", "qa_rw"),
-        #     config.get("SQL SERVER", "qa_ro"),
-        #     # config.get("SQL SERVER", "qa_web_ro_gdb")
-        # ],
+        [
+            script_config.get("SERVER", "qa_rw"),
+            script_config.get("SERVER", "qa_ro"),
+            script_config.get("SERVER", "qa_web_ro"),
+            script_config.get("SERVER", "qa_web_ro_gdb")
+        ],
     ]:
         if dbs:
             print(f"\nProcessing dbs: {', '.join(dbs)}...")
