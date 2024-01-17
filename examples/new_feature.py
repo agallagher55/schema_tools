@@ -49,6 +49,8 @@ if __name__ == "__main__":
     SUBTYPE_FIELD = ""
     SUBTYPE_DOMAINS = {}
 
+    add_editor_tracking = True
+
     sdsf = "../Spatial Data Forms/SDSForm_AST_EV_Charging_Station_BUapproved.xlsx"
 
     sheet_name = "DATASET DETAILS"
@@ -248,9 +250,10 @@ if __name__ == "__main__":
                     # ADD GLOBAL IDS
                     new_feature.add_gloablids()
 
-                    # ADD EDITOR TRACKING FIELDS
-                    if db_type in ("SDE", "GDB") and db_rights in ("RW", ""):
-                        new_feature.add_editor_tracking_fields()
+                    if add_editor_tracking:
+                        # ADD EDITOR TRACKING FIELDS
+                        if db_type in ("SDE", "GDB") and db_rights in ("RW", ""):
+                            new_feature.add_editor_tracking_fields()
 
                     # Update Privileges
                     if db_type != "GDB":
@@ -353,8 +356,9 @@ if __name__ == "__main__":
                                             arcpy_msg = arcpy.GetMessages(2)
                                             print(arcpy_msg)
 
-                    # ENABLE EDITOR TRACKING
-                    new_feature.enable_editor_tracking()
+                    if add_editor_tracking:
+                        # ENABLE EDITOR TRACKING
+                        new_feature.enable_editor_tracking()
 
                     # Attribute Rules - Add after feature has been copied to Read-Only. RW and .gdb only
                     if feature_name in unique_id_fields:
