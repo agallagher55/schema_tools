@@ -40,21 +40,27 @@ IMMUTABLE_FIELDS = {
 
 
 if __name__ == "__main__":
+    
+    # TODO: Update me
     READY_TO_ADD_TO_REPLICA = False
-    REPLICA_NAME = 'AST_Rosde'  # Do not need to include SDEADM
+    
+    # TODO: Update me
+    REPLICA_NAME = 'TRN_Rosde'  # Do not need to include SDEADM
 
     SUBTYPES = False
-    TOPOLOGY_DATASET = False
+    TOPOLOGY_DATASET = True
 
     SUBTYPE_FIELD = ""
     SUBTYPE_DOMAINS = {}
 
     add_editor_tracking = True
-
-    sdsf = "../Spatial Data Forms/SDSForm_AST_EV_Charging_Station_BUapproved.xlsx"
+    
+    # TODO: Update me
+    sdsf = r"T:\work\giss\monthly\202401jan\gallaga\trn_bus_snow_plan\TRN_bus_snow_plan.xlsx"
 
     sheet_name = "DATASET DETAILS"
 
+    # TODO: Update me
     unique_id_fields = {
         'AST_EV_charging_station': [
             {"field": "EVCSID", "prefix": "EVCS"},
@@ -62,6 +68,7 @@ if __name__ == "__main__":
         ]
     }
 
+    # TODO: Update me
     new_domain_types = {
         "AST_EV_op_hour": "SHORT",
         "AST_EV_output": "LONG"
