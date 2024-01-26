@@ -38,11 +38,12 @@ if __name__ == "__main__":
     local_gdb = utils.create_fgdb(out_folder_path=CURRENT_DIR, out_name="scratch.gdb")
 
     for dbs in [
-        [local_gdb, ],
-        # [
-        #     config.get("SERVER", "dev_rw"),
-        # config.get("SERVER", "dev_ro"),
-        # ],
+        # [local_gdb, ],
+        [
+            config.get("SERVER", "dev_rw"),
+            config.get("SERVER", "dev_ro"),
+            config.get("SERVER", "dev_web_ro_gdb"),
+        ],
         # [
         # config.get("SERVER", "qa_rw"),  # qa_ro, qa_web_ro will get copied to db when processing rw
         #     config.get("SERVER", "qa_web_ro_gdb"),
