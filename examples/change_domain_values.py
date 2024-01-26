@@ -16,21 +16,14 @@ config.read('config.ini')
 CURRENT_DIR = getcwd()
 
 ADD_CODE_VALUES = {
-    "TRN_pavement_mark_priority": {
-        "P": "Priority",
-        "R": "Regular",
-    },
-    "TRN_pavement_marking_status": {
-        "NEW": "New Item",
-    },
-    "TRN_pavement_mark_loc_type": {
-        "NON": "Non-Signalized Intersection",
+    "TRN_RDM_RoadClosureEditors": {
+        "Jason Beanlands": "Jason Beanlands",
     },
 }
 
 REMOVE_CODE_VALUES = {
-    "TRN_pavement_marking_status": "CAPDEV",
-    "TRN_pavement_mark_loc_type": "INT",
+    "TRN_RDM_RoadClosureEditors": ["Martin Brien", ],
+    "TRN_RDM_RoadClosureApprover": ["Matt Hamer", ]
     }
 
 
@@ -42,24 +35,25 @@ if __name__ == "__main__":
 
     print(f"\nPC Name: {PC_NAME}\n\tRunning from: {run_from}...")
 
+    local_gdb = utils.create_fgdb(out_folder_path=CURRENT_DIR, out_name="scratch.gdb")
+
     for dbs in [
         [local_gdb, ],
-        # [config.get(run_from, "dev_rw"), config.get(run_from, "dev_ro"), config.get(run_from, "dev_web_ro_gdb")],
         # [
-        #     config.get(run_from, "qa_rw"),
-        #     config.get(run_from, "qa_ro"),
-        #     config.get(run_from, "qa_web_ro_gdb")
+        #     config.get("SERVER", "dev_rw"),
+        # config.get("SERVER", "dev_ro"),
         # ],
-        # [config.get(run_from, "prod_rw"), config.get(run_from, "prod_ro"), config.get(run_from, "prod_web_ro_gdb")],
+        # [
+        # config.get("SERVER", "qa_rw"),  # qa_ro, qa_web_ro will get copied to db when processing rw
+        #     config.get("SERVER", "qa_web_ro_gdb"),
+        # ],
+        # [
+        #     config.get("SERVER", "prod_rw"),  # qa_ro, qa_web_ro will get copied to db when processing rw
+            #     config.get("SERVER", "prod_web_ro_gdb"),
+        # ],
 
-        # SQL SERVER
-        [
-            script_config.get("SERVER", "qa_rw"),
-            script_config.get("SERVER", "qa_ro"),
-            script_config.get("SERVER", "qa_web_ro"),
-            script_config.get("SERVER", "qa_web_ro_gdb")
-        ],
     ]:
+
         if dbs:
             print(f"\nProcessing dbs: {', '.join(dbs)}...")
 
@@ -69,19 +63,21 @@ if __name__ == "__main__":
                 if db == local_gdb:
 
                     # Check for domains in local workspace
-                    domain_present, unfound_domains = domains.domains_in_db(local_gdb, list(ADD_CODE_VALUES.keys()))
+                    required_domains = set(list(ADD_CODE_VALUES.keys()) + list(REMOVE_CODE_VALUES.keys()))
+                    domain_present, unfound_domains = domains.domains_in_db(local_gdb, required_domains)
 
                     if unfound_domains:
                         prod_sde = config.get("SERVER", "prod_rw") if "APP" in PC_NAME else config.get("LOCAL", "prod_rw")
 
                         domains.transfer_domains(
-                            list(ADD_CODE_VALUES.keys()),
+                            unfound_domains,
                             local_gdb,
                             from_workspace=prod_sde
                         )
 
                 for domain in REMOVE_CODE_VALUES:
-                    remove_codes = list(REMOVE_CODE_VALUES.values())
+
+                    remove_codes = REMOVE_CODE_VALUES[domain]
 
                     for count, domain_code in enumerate(remove_codes, start=1):
                         domains.remove_code_value(db, domain, domain_code)
