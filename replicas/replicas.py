@@ -16,20 +16,6 @@ REPLICAS = [
 ]
 
 
-class Workspace:
-    def __init__(self, source: str):
-        self.source = source
-
-        self.replicas = self.replicas()
-
-        if not arcpy.Exists(source):
-            raise ValueError(f"Workspace, '{source}' does not exist.")
-
-    def replicas(self):
-        print(f"Getting replicas in '{self.source}'...")
-        return sorted(arcpy.da.ListReplicas(self.source), key=lambda x: x.name)
-
-
 class Replica:
     """
     https://pro.arcgis.com/en/pro-app/2.9/arcpy/data-access/replica.htm
@@ -258,8 +244,7 @@ if __name__ == "__main__":
 
         replica_name = "LND_Rosde"
 
-        current_workspace = Workspace(rw_sde)
-        workspace_replicas = [x.name for x in current_workspace.replicas]
+        workspace_replicas = sorted(arcpy.da.ListReplicas(rw_sde), key=lambda x: x.name)
 
         replica_features = Replica(replica_name, rw_sde).datasets
 
