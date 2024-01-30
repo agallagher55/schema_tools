@@ -205,7 +205,7 @@ def add_to_replica(replica_name: str, rw_sde: str, ro_sde: str, add_features: li
             access_type=access_type,
             # FULL: SNF = Full, the rest = Simple; Complex types (topologies and networks) are supported and the data must be versioned.
             initial_data_sender="PARENT_DATA_SENDER",
-            expand_feature_classes_and_tables="USE_DEFAULTS",
+            expand_feature_classes_and_tables="ALL_ROWS",  # UPDATED Jan 30, 2024
             reuse_schema="DO_NOT_REUSE",  # This parameter is only available for checkout replicas.
             get_related_data="GET_RELATED",
             geometry_features=None,
