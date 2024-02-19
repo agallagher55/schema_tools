@@ -44,25 +44,11 @@ SDSF_IGNORE_FIELDS = [
 if __name__ == "__main__":
 
     # TODO: Update me
-    READY_TO_ADD_TO_REPLICA = False
-
-    # TODO: Update me
-    REPLICA_NAME = 'ADM_Rosde'  # Do not need to include SDEADM
-
-    SUBTYPES = False
-    TOPOLOGY_DATASET = False
-
-    SUBTYPE_FIELD = ""
-    SUBTYPE_DOMAINS = {}
-
-    add_editor_tracking = True
-    if add_editor_tracking:
-        SDSF_IGNORE_FIELDS.extend(["ADDBY", "ADDDATE", "MODBY", "MODDATE"])
-
-    # TODO: Update me
     sdsf = r"T:\work\giss\monthly\202402feb\gallaga\ADM_traffic_analyst_zone\SDSform_ADM_Transportation_Analysis_Zone.xlsx"
-
     sheet_name = "DATASET DETAILS"
+
+    # TODO: Update me
+    ADD_EDITOR_TRACKING = True
 
     # TODO: Update me
     unique_id_fields = {
@@ -79,6 +65,21 @@ if __name__ == "__main__":
         # "AST_EV_op_hour": "SHORT",
         # "AST_EV_output": "LONG"
     }
+
+    # TODO: Update me
+    READY_TO_ADD_TO_REPLICA = False
+
+    # TODO: Update me
+    REPLICA_NAME = 'ADM_Rosde'
+    
+    SUBTYPES = False
+    TOPOLOGY_DATASET = False
+
+    SUBTYPE_FIELD = ""
+    SUBTYPE_DOMAINS = {}
+    
+    if ADD_EDITOR_TRACKING:
+        SDSF_IGNORE_FIELDS.extend(["ADDBY", "ADDDATE", "MODBY", "MODDATE"])
 
     CURRENT_DIR = os.getcwd()
 
@@ -265,7 +266,7 @@ if __name__ == "__main__":
                     # ADD GLOBAL IDS
                     new_feature.add_gloablids()
 
-                    if add_editor_tracking:
+                    if ADD_EDITOR_TRACKING:
                         # ADD EDITOR TRACKING FIELDS
                         if db_type in ("SDE", "GDB") and db_rights in ("RW", ""):
                             new_feature.add_editor_tracking_fields()
@@ -344,7 +345,7 @@ if __name__ == "__main__":
                                 print(f"\tRegistering as UN-versioned for '{feature}'...")
                                 arcpy.UnregisterAsVersioned_management(in_dataset=feature)
 
-                                if add_editor_tracking:
+                                if ADD_EDITOR_TRACKING:
                                     print(f"\tDisabling Editor Tracking for '{feature}'...")
                                     arcpy.DisableEditorTracking_management(in_dataset=feature)
 
@@ -382,7 +383,7 @@ if __name__ == "__main__":
                                             arcpy_msg = arcpy.GetMessages(2)
                                             print(arcpy_msg)
 
-                    if add_editor_tracking:
+                    if ADD_EDITOR_TRACKING:
                         # ENABLE EDITOR TRACKING
                         new_feature.enable_editor_tracking()
 
