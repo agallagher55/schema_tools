@@ -36,11 +36,10 @@ EDIT_PERMISSIONS_USERS = [
     "HRM\\GIS_TRAFFIC_EDITOR",
 ]
 
-SDSF_IGNORE_FIELDS = {
+SDSF_IGNORE_FIELDS = [
     "OBJECTID", "GLOBALID",
-    "ADDBY", "ADDDATE", "MODBY", "MODDATE",
     "SHAPE", "SHAPE_AREA", "SHAPE_LENGTH"
-}
+]
 
 if __name__ == "__main__":
 
@@ -57,17 +56,22 @@ if __name__ == "__main__":
     SUBTYPE_DOMAINS = {}
 
     add_editor_tracking = True
+    if add_editor_tracking:
+        SDSF_IGNORE_FIELDS.extend(["ADDBY", "ADDDATE", "MODBY", "MODDATE"])
 
     # TODO: Update me
-    sdsf = r"T:\work\giss\monthly\202402feb\gallaga\ADM_community_planning_program\SDSform_ADM_Community_Planning_Program.xlsx"
+    sdsf = r"T:\work\giss\monthly\202402feb\gallaga\ADM_traffic_analyst_zone\SDSform_ADM_Transportation_Analysis_Zone.xlsx"
 
     sheet_name = "DATASET DETAILS"
 
     # TODO: Update me
     unique_id_fields = {
-        # 'ADM_community_planning_program': [
-        #     {"field": "CPP_ID", "prefix": ""},
-        # ]
+        'ADM_transportation_analysis_zone': [
+            {
+                "field": "TAZ_ID",
+                "prefix": ""
+            },
+        ]
     }
 
     # TODO: Update me
@@ -79,11 +83,11 @@ if __name__ == "__main__":
     CURRENT_DIR = os.getcwd()
 
     for dbs in [
-        # [utils.create_fgdb(out_folder_path=CURRENT_DIR, out_name="scratch.gdb")],
-        [
-            config.get("SERVER", "dev_rw"),
-            config.get("SERVER", "dev_ro"),
-        ],
+        [utils.create_fgdb(out_folder_path=CURRENT_DIR, out_name="scratch.gdb")],
+        # [
+        #     config.get("SERVER", "dev_rw"),
+        #     config.get("SERVER", "dev_ro"),
+        # ],
         # [
         #     config.get("SERVER", "qa_rw"),  # qa_ro, qa_web_ro will get copied to db when processing rw
         #     config.get("SERVER", "qa_web_ro_gdb"),
