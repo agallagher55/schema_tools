@@ -1,18 +1,21 @@
 import os
 import arcpy
 
-import connections
-import attribute_rules
-import utils
-import replicas
+from gispy import (
+    connections,
+    attribute_rules,
+    utils,
+)
+
+from gispy.replicas import replicas
 
 from configparser import ConfigParser
 
-from subtypes import create_subtype
-from domains import transfer_domains, domains_in_db
+from gispy.subtypes import create_subtype
+from gispy.domains import transfer_domains, domains_in_db
 
-from SpatialDataSubmissionForms.features import Feature
-from SpatialDataSubmissionForms.reporter import FieldsReport, DomainsReport
+from gispy.SpatialDataSubmissionForms.features import Feature
+from gispy.SpatialDataSubmissionForms.reporter import FieldsReport, DomainsReport
 
 arcpy.env.overwriteOutput = True
 arcpy.SetLogHistory(False)
@@ -29,66 +32,65 @@ if "GIS" in os.environ.get("COMPUTERNAME").upper():
 
 SPATIAL_REFERENCE = os.path.join(SDE, "SDEADM.LND_hrm_parcel_parks", "SDEADM.LND_hrm_park")
 
-USER_PRIVILEGE = "PUBLIC"
-VIEW_PRIVILEGE = "GRANT"
+EDIT_PERMISSIONS_USERS = [
+    "HRM\\GIS_TRAFFIC_EDITOR",
+]
 
-IMMUTABLE_FIELDS = {
+SDSF_IGNORE_FIELDS = {
     "OBJECTID", "GLOBALID",
     "ADDBY", "ADDDATE", "MODBY", "MODDATE",
     "SHAPE", "SHAPE_AREA", "SHAPE_LENGTH"
 }
 
-
 if __name__ == "__main__":
-    
+
     # TODO: Update me
     READY_TO_ADD_TO_REPLICA = False
-    
+
     # TODO: Update me
-    REPLICA_NAME = 'TRN_Rosde'  # Do not need to include SDEADM
+    REPLICA_NAME = 'ADM_Rosde'  # Do not need to include SDEADM
 
     SUBTYPES = False
-    TOPOLOGY_DATASET = True
+    TOPOLOGY_DATASET = False
 
     SUBTYPE_FIELD = ""
     SUBTYPE_DOMAINS = {}
 
     add_editor_tracking = True
-    
+
     # TODO: Update me
-    sdsf = r"T:\work\giss\monthly\202401jan\gallaga\trn_bus_snow_plan\TRN_bus_snow_plan.xlsx"
+    sdsf = r"T:\work\giss\monthly\202402feb\gallaga\ADM_community_planning_program\SDSform_ADM_Community_Planning_Program.xlsx"
 
     sheet_name = "DATASET DETAILS"
 
     # TODO: Update me
     unique_id_fields = {
-        'AST_EV_charging_station': [
-            {"field": "EVCSID", "prefix": "EVCS"},
-            {"field": "ASSETID", "prefix": "EVCS"},
-        ]
+        # 'ADM_community_planning_program': [
+        #     {"field": "CPP_ID", "prefix": ""},
+        # ]
     }
 
     # TODO: Update me
     new_domain_types = {
-        "AST_EV_op_hour": "SHORT",
-        "AST_EV_output": "LONG"
+        # "AST_EV_op_hour": "SHORT",
+        # "AST_EV_output": "LONG"
     }
 
     CURRENT_DIR = os.getcwd()
 
     for dbs in [
-        [utils.create_fgdb(out_folder_path=CURRENT_DIR, out_name="scratch.gdb")],
-        # [
-        #     config.get("SERVER", "dev_rw"),
-        #     # config.get("SERVER", "dev_ro"),
-        # ],
+        # [utils.create_fgdb(out_folder_path=CURRENT_DIR, out_name="scratch.gdb")],
+        [
+            config.get("SERVER", "dev_rw"),
+            config.get("SERVER", "dev_ro"),
+        ],
         # [
         #     config.get("SERVER", "qa_rw"),  # qa_ro, qa_web_ro will get copied to db when processing rw
         #     config.get("SERVER", "qa_web_ro_gdb"),
         # ],
         # [
         #     config.get("SERVER", "prod_rw"),  # qa_ro, qa_web_ro will get copied to db when processing rw
-        #     config.get("SERVER", "prod_web_ro_gdb"),
+        #     config.get("SERVER", "prod_ro"),
         # ],
 
     ]:
@@ -121,7 +123,8 @@ if __name__ == "__main__":
                 if SUBTYPES:
                     subtype_info = fields_report.subtype_info()
                     subtype_field = subtype_info.get("subtype_field")
-                    subtype_field = [value.get("subtype_field") for key, value in domain_data.items() if value.get("subtype_field")][0]
+                    subtype_field = \
+                    [value.get("subtype_field") for key, value in domain_data.items() if value.get("subtype_field")][0]
                     subtype_domains_field = subtype_info.get("subtype_domains_field")
                     subtype_data = {key: value for key, value in domain_data.items() if
                                     domain_data[key].get("subtype_code")}
@@ -188,7 +191,7 @@ if __name__ == "__main__":
                             desc = row.Description
 
                             print(f"\tAdding ({code}: {desc})")
-                            arcpy.management.AddCodedValueToDomain(
+                            arcpy.AddCodedValueToDomain_management(
                                 in_workspace=db,
                                 domain_name=domain,
                                 code=code,
@@ -216,7 +219,7 @@ if __name__ == "__main__":
                         field_name = row["Field Name"].upper().strip()
                         field_length = row["Field Length (# of characters)"]
 
-                        if field_name not in IMMUTABLE_FIELDS:
+                        if field_name not in SDSF_IGNORE_FIELDS:
                             alias = row["Alias"]
                             field_type = row["Field Type"]
                             field_len = field_length
@@ -228,7 +231,8 @@ if __name__ == "__main__":
                                 field_length = int(field_length)
 
                             if field_type == "TEXT" and not field_length:
-                                raise ValueError(f"Field {field_name} of type {field_type} needs to have a field length.")
+                                raise ValueError(
+                                    f"Field {field_name} of type {field_type} needs to have a field length.")
 
                             new_feature.add_field(
                                 field_name=field_name.upper(),
@@ -265,9 +269,17 @@ if __name__ == "__main__":
                     # Update Privileges
                     if db_type != "GDB":
                         new_feature.change_privileges(
-                            user=USER_PRIVILEGE,
-                            view=VIEW_PRIVILEGE
+                            user="PUBLIC",
+                            view="GRANT"
                         )
+
+                        for user in EDIT_PERMISSIONS_USERS:
+                            print(f"\nEnabling privileges for {user}")
+                            arcpy.ChangePrivileges_management(
+                                in_dataset=new_feature.feature,
+                                user=user,
+                                Edit="GRANT"
+                            )
 
                     # SUBTYPES
                     if SUBTYPES:
@@ -278,8 +290,7 @@ if __name__ == "__main__":
                         # Register as Versioned
                         new_feature.register_as_versioned()  # needs to be versioned to add to replica
 
-                        # Copy RW features to RO
-                        # TODO: Copy to web geodatabase
+                        # COPY FEATURE TO RO, WEBGIS
                         ro_sdeadm_db = db.replace("RW", "RO")
                         ro_webgis_db = ro_sdeadm_db.upper().replace("SDEADM", "WEBGIS")
 
@@ -290,7 +301,7 @@ if __name__ == "__main__":
 
                             # Don't need to add to WEB if feature is a table
                             if ro_db == ro_webgis_db and feature_shape.upper() == 'ENTERPRISE GEODATABASE TABLE':
-                                print(f"Feature is a table - skipping adding to WEB RO...")
+                                print(f"\nFeature is a table - skipping adding to WEB RO...")
                                 continue
 
                             if not arcpy.Exists(ro_feature):
@@ -312,7 +323,6 @@ if __name__ == "__main__":
                                     )[0]
 
                         if READY_TO_ADD_TO_REPLICA:
-
                             replicas.add_to_replica(
                                 replica_name=REPLICA_NAME,
                                 rw_sde=db,
@@ -324,25 +334,30 @@ if __name__ == "__main__":
                         # Un-version RO feature, disable editor tracking, index
                         for feature in ro_sdeadm_feature, ro_webgis_feature:
 
-                            if arcpy.Exists(feature):  # ro_webgis_feature may not have ever gotten created if it was a table.
+                            if arcpy.Exists(
+                                    feature):  # ro_webgis_feature may not have ever gotten created if it was a table.
 
                                 print(f"\tRegistering as UN-versioned for '{feature}'...")
                                 arcpy.UnregisterAsVersioned_management(in_dataset=feature)
 
-                                print(f"\tDisabling Editor Tracking for '{feature}'...")
-                                arcpy.DisableEditorTracking_management(in_dataset=feature)
+                                if add_editor_tracking:
+                                    print(f"\tDisabling Editor Tracking for '{feature}'...")
+                                    arcpy.DisableEditorTracking_management(in_dataset=feature)
 
                                 # Set privileges
-                                arcpy.ChangePrivileges_management(
-                                    in_dataset=feature,
-                                    user="PUBLIC",
-                                    View="GRANT"
-                                )
-                                arcpy.ChangePrivileges_management(
-                                    in_dataset=feature,
-                                    user="SDE",
-                                    View="GRANT"
-                                )
+                                ro_users = ["PUBLIC", "SDE"]
+
+                                for user in ro_users:
+                                    arcpy.ChangePrivileges_management(
+                                        in_dataset=feature,
+                                        user="PUBLIC",
+                                        View="GRANT"
+                                    )
+                                    arcpy.ChangePrivileges_management(
+                                        in_dataset=feature,
+                                        user=user,
+                                        View="GRANT"
+                                    )
 
                                 if feature_name in unique_id_fields:
                                     id_field_info = unique_id_fields[feature_name]
